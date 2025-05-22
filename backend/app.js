@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import authRouter from './routes/auth.routes.js';
 import productsRouter from './routes/product.routes.js';
 import categoryRouter from "./routes/category.routes.js";
@@ -19,10 +22,17 @@ import languageRoutes from "./routes/language.routes.js";
 
 export const app = express();
 
+// Required to get __dirname with ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.static('public'));
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 app.use(express.urlencoded({extended:true}));
+
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1/products', productsRouter);

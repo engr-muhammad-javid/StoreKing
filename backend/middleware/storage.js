@@ -3,31 +3,30 @@ import path from 'path';
 import randomstring from 'randomstring';
 
 
-const fileType = (file,cb) =>{
-    console.log('filename 1')
-    let allow = /jpe|png|jpg|gif/
+const fileType = (file, cb) => {
+    const allowedExt = ['.jpg', '.jpeg', '.png', '.gif'];
+    const allowedMime = ['image/jpeg', 'image/png', 'image/gif'];
 
-    let isMatch = allow.test(path.extname(file.originalname).toLowerCase());
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mime = file.mimetype;
 
-
-    let mime = allow.test(file.mimetype);
-
-    if( mime){
-        cb(null, true)
-    }else{
+    if (allowedExt.includes(ext) && allowedMime.includes(mime)) {
+        cb(null, true);
+    } else {
         cb('Error: File must be an image', false);
     }
-}
+};
 
 export const upload = multer({
     storage:diskStorage({
-        destination: './public/profile',
+        
+        destination: './backend/public/profile',
         filename: (req, file, cb) =>{
-
+             
             let p1 = randomstring.generate(4);
             let p2 = randomstring.generate(2);
             let ext = path.extname(file.originalname).toLowerCase();
-
+           
             cb(null, file.fieldname+"-"+p1+p2+p2+ext);
         },
     }),

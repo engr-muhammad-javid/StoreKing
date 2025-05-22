@@ -1,38 +1,81 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const userSchema = Schema({
-
-
-    name: String,
-    email: {
-        type:String, 
-        unique:true,
-    
+const addressSchema = new Schema({
+    type: {
+        type: String,
+        enum: ['Home', 'Office', 'Other'],
+        required: true
     },
-    password: String,
-    role: {
-        type:String, 
-        enum:['user',  'super-admin','admin', 'manager', 'service'],
+    address: {
+        type: String,
+        required: true,
+        trim: true
     },
-    profile:{
-        type:String,
-        default:'avatar.png',
+    latitude: {
+        type: Number,
+        required: true
     },
-
-    phone:{
-        type:String,
+    longitude: {
+        type: Number,
+        required: true
     }
+}, { timestamps: true });
+
+const userSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+
+    email: {
+        type: String,
+        unique: true,
+        required: true,
+        lowercase: true,
+        trim: true,
+        match: [
+            /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+            "Please enter a valid email address"
+        ]
+    },
+
+    password: {
+        type: String,
+        required: true
+    },
+
+    role: {
+        type: String,
+        enum: ['user', 'super-admin', 'admin', 'manager', 'service'],
+        default: 'user'
+    },
+
+    profile: {
+        type: String,
+        default: 'avatar.png',
+    },
+
+    phone: {
+        type: String,
+        match: [
+            /^(\+92|0)?3[0-9]{9}$/,
+            "Please enter a valid Pakistani phone number (e.g. 03XXXXXXXXX or +923XXXXXXXXX)"
+        ]
+    },
+
+    addresses: [addressSchema] // 🔹 Multiple addresses here
+
 });
 
-userSchema.methods.getAuthToken = async function(){
-    return await jwt.sign({_id:this._id}, process.env.SECRET_KEY)
+userSchema.methods.getAuthToken = async function () {
+    return jwt.sign({ _id: this._id }, process.env.SECRET_KEY);
 };
 
-userSchema.methods.isPassMatch= function(password){
-    return bcrypt.compare(password,this.password);
-}
+userSchema.methods.isPassMatch = function (password) {
+    return bcrypt.compare(password, this.password);
+};
 
 export default mongoose.model("User", userSchema);
-
