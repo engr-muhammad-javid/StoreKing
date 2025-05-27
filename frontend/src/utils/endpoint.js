@@ -9,6 +9,7 @@ export const endPoint ={
     profile: '/profile',
     address: '/address',
     product: '/product',
+    category: '/categories',
     updateProfile: '/update/profile',
     changePassword: '/change/password',
     uploadProfilePic: '/upload/ProfilePic',

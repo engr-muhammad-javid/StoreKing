@@ -26,12 +26,6 @@ const Header = () => {
       <div className="flex items-center justify-between p-4">
         <h1 className="text-2xl font-bold text-gray-800">ForeKing</h1>
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-yellow-50 px-3 py-1 rounded-full">
-            <FaBell className="text-yellow-500" />
-            <span className="text-sm">Reminder!</span>
-            <span className="text-xs text-gray-600">Dummy data will be reset in every 30 minutes.</span>
-          </div>
-
           {/* Language Selector Dropdown */}
           <div className="relative" ref={languageRef}>
             <button

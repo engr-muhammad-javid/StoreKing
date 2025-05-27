@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import PublicLayout from './layouts/PublicLayout';
 import AccountLayout from './layouts/AccountLayout';
 import DashboardLayout from './layouts/DashboardLayout';
+import SettingsLayout from './layouts/admin/SettingsLayout';
 
 import ProtectedRoute from './routes/ProtectedRoute';
 import AdminRoute from './routes/AdminRoutes';
@@ -26,6 +27,10 @@ import ChangePassword from './pages/account/ChangePassword';
 
 import Dashboard from './pages/admin/Dashboard';
 import Products from './pages/admin/Products';
+import ProductCategories from './pages/admin/settings/ProductCategories';
+import SiteSettings from './pages/admin/settings/SiteSettings';
+import DeliveryZones from './pages/admin/settings/DeliveryZones';
+
 
 function App() {
   return (
@@ -48,9 +53,18 @@ function App() {
           <Route path="/account/password" element={<ChangePassword />} />
         </Route>
 
+        {/* Admin Routes */}
         <Route element={<AdminRoute><DashboardLayout /></AdminRoute>}>
           <Route path="admin/dashboard" element={<Dashboard />} />
           <Route path="admin/products" element={<Products />} />
+          
+          {/* Settings Sub-Routes */}
+          <Route path="admin/settings" element={<SettingsLayout />}>
+            <Route path="product-categories" element={<ProductCategories />} />
+            <Route path="site" element={<SiteSettings />} />
+            <Route path="delivery-zones" element={<DeliveryZones />} />
+            {/* Add other settings routes here */}
+          </Route>
         </Route>
       </Routes>
 

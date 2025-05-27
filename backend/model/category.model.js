@@ -7,7 +7,17 @@ const categorySchema = new Schema({
     required: true,
     trim: true,
   },
-  slug: {
+  description: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  image: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  url_key: {
     type: String,
     required: true,
     unique: true,

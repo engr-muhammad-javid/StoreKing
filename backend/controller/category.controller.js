@@ -4,12 +4,16 @@ import { sendResponse, sendError } from "../helper/response.js";
 
 export const createCategory = async (req, res) => {
   try {
-    const { name, slug, parent } = req.body;
+  
 
-    const existing = await Category.findOne({ slug });
+    const { name, description, image, url_key, parent } = req.body;
+    const existing = await Category.findOne({ url_key });
     if (existing) return sendResponse(res, false, "Category already exists");
+  
 
-    const newCat = new Category({ name, slug, parent: parent || null });
+    const newCat = new Category({ name, description, image, url_key, parent: parent || null });
+
+      
     const result = await newCat.save();
 
     return sendResponse(res, true, "Category created", result);
@@ -20,12 +24,21 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find().lean();
-    return sendResponse(res, true, "All categories", categories);
+    const categories = await Category.find()
+      .populate('parent', 'name') // This will populate the parent field with just the name
+      .lean();
+    
+    // Optionally, you can transform the data to include parentName directly
+    const categoriesWithParentName = categories.map(category => ({
+      ...category
+    }));
+    
+    return sendResponse(res, true, "All categories", categoriesWithParentName);
   } catch (err) {
     return sendError(res, err);
   }
 };
+
 
 export const getCategoryTree = async (req, res) => {
   try {
