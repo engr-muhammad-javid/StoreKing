@@ -1,39 +1,89 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FaTimes, FaSave } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import {useDispatch, useSelector } from 'react-redux';
+import { fetchCategories } from '../../../store/slices/productCategorySlice';
 
-const Form = ({ isOpen, onClose, onSubmit, initialData = {}, existingCategories, mode = 'add' }) => {
+
+const Form = ({ isOpen, onClose, onSubmit, initialData = {}, mode = 'add' }) => {
+
+  const dispatch = useDispatch();
+
+  const { categories } = useSelector(state => state.productCategory);
  
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    url_key: '',
+    slug: '',
     image: '',
-    parent: '',
     isActive: true,
-
+    sku: '',
+    category: '',
+    barcode: '',
+    price: '',
+    salePrice: '',
+    tax: '',
+    brand: '',
+    can_purchasable: true,
+    show_stock_out: true,
+    refundable: true,
+    file_attachment: false,
+    unit: '',
+    weight: '',
+    tags: '',
+    status: 'active',
   });
 
   useEffect(() => {
+    dispatch(fetchCategories());
+
     const {
+      sku = '',
       name = '',
       description = '',
-      url_key = '',
+      slug ='',
       image = '',
-      parent = '',
-      isActive = true
+      isActive ='',
+      category = '',
+      barcode = '',
+      price = '',
+      salePrice = '',
+      tax = '',
+      brand = '',
+      can_purchasable = '',
+      show_stock_out = '',
+      refundable = '',
+      file_attachment = '',
+      unit = '',
+      weight = '',
+      tags = '',
+      status = '',
     } = initialData || {};
 
-    setFormData({
-      name,
-      description,
-      url_key,
-      image,
-      parent: parent?._id || parent || '',
-      isActive: isActive !== false,
-    });
+
+      setFormData({
+        sku,
+        name,
+        description,
+        slug,
+        image,
+        isActive,
+        category,
+        barcode,
+        price,
+        salePrice,
+        tax,
+        brand,
+        can_purchasable,
+        show_stock_out,
+        refundable,
+        file_attachment,
+        unit,
+        weight,
+        tags,
+        status,
+      });
   }, [initialData]);
+  
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -41,137 +91,156 @@ const Form = ({ isOpen, onClose, onSubmit, initialData = {}, existingCategories,
     onClose();
   }, [formData, onSubmit, onClose]);
 
-
   if (!isOpen) return null;
 
   return (
-
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-xl shadow-lg relative">
-        <form onSubmit={handleSubmit} className="p-6" encType="multipart/form-data">
-          {/* Close Button */}
-          <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-700" onClick={onClose}>
-            <IoClose size={20} />
-          </button>
-
-          {/* Title */}
-          <h2 className="text-lg font-semibold mb-6">Product Categories</h2>
-
-          {/* Name */}
-          <div className="mb-4">
-            <label htmlFor="categoryName" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Name *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          {/* Parent Category */}
-          <div className="mb-4">
-            <label htmlFor="parentCategory"  className="block text-xs font-medium text-gray-600 mb-1 uppercase">Parent Category</label>
-            <select
-              value={formData.parent}
-              onChange={(e) => setFormData({ ...formData, parent: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">--</option>
-              {existingCategories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-4 mt-2">
-            <label htmlFor="categoryStatus">
-              <input
-                type="radio"
-                name="status"
-                value="active"
-                checked={formData.isActive === true}
-                onChange={() => setFormData({ ...formData, isActive: true })}
-              />
-              Active
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="status"
-                value="inactive"
-                checked={formData.isActive === false}
-                onChange={() => setFormData({ ...formData, isActive: false })}
-              />
-              Inactive
-            </label>
-          </div>
-
-          {/* Image Upload */}
-          <div className="mb-4">
-            <label htmlFor="categoryImage" className="block text-xs font-medium text-gray-600 mb-1 uppercase">
-              Image (640px, 960px)
-            </label>
-            <input
-              id="imageUpload"
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={(e) =>
-                setFormData({ ...formData, image: e.target.files[0] })
-              }
-              className="w-full border border-gray-300 rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:bg-gray-50 file:text-gray-700"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="categoryUrlKey" className="block text-xs font-medium text-gray-600 mb-1 uppercase">URL Key *</label>
-            <input
-              type="text"
-              value={formData.url_key}
-              onChange={(e) => setFormData({ ...formData, url_key: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          {/* Description */}
-          <div className="mb-4">
-            <label htmlFor="categoryDescription" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Description</label>
-            <textarea
-               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              rows="3"
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end pt-4 space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <FaTimes className="inline mr-2" />
-              Close
+      <div className="bg-white rounded-xl w-full max-w-5xl h-[90vh] shadow-lg relative overflow-hidden">
+        <form onSubmit={handleSubmit} className="h-full flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Product' : 'Add Product'}</h2>
+            <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <IoClose size={24} />
             </button>
-            <button
-              type="submit"
-              disabled={!formData.name || !formData.url_key}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            >
-              <FaSave className="inline mr-2" />
-              Save
+          </div>
+
+          {/* Body */}
+          <div className="overflow-y-auto px-6 py-4 space-y-6 flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* SKU */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">SKU *</label>
+                <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Name *</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Category *</label>
+                <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                  <option value="">Select Category</option>
+                  {categories.map(cat => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Barcode */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Barcode</label>
+                <select value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                  <option value="EAN-13">EAN-13</option>
+                  <option value="UPC">UPC</option>
+                </select>
+              </div>
+
+              {/* Buying Price */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Buying Price *</label>
+                <input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+
+              {/* Selling Price */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Selling Price *</label>
+                <input type="number" value={formData.salePrice} onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+              </div>
+
+              {/* Tax */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Tax</label>
+                <select value={formData.tax} onChange={(e) => setFormData({ ...formData, tax: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                  <option value="">Select</option>
+                  <option value="0%">0%</option>
+                  <option value="5%">5%</option>
+                </select>
+              </div>
+
+              {/* Brand */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Brand</label>
+                <input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* URL Key */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">URL Key</label>
+                <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* Image */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Image</label>
+                <input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* Unit */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Unit</label>
+                <input type="text" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* Weight */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Weight</label>
+                <input type="number" value={formData.weight} onChange={(e) => setFormData({ ...formData, weight: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Tags</label>
+                <input type="text" value={formData.tags} onChange={(e) => setFormData({ ...formData, tags: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="e.g., electronics, gadgets" />
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Status</label>
+                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Description */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">Description</label>
+                <textarea rows={4} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+
+              {/* Toggles */}
+              {[
+                { key: 'can_purchasable', label: 'Can Purchasable' },
+                { key: 'show_stock_out', label: 'Show Stock Out' },
+                { key: 'refundable', label: 'Refundable' },
+                { key: 'file_attachment', label: 'File Attachment' },
+                { key: 'isActive', label: 'Active' },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1 uppercase">{label}</label>
+                  <div className="flex gap-4">
+                    <label><input type="radio" name={key} checked={formData[key] === true} onChange={() => setFormData({ ...formData, [key]: true })} /> Yes</label>
+                    <label><input type="radio" name={key} checked={formData[key] === false} onChange={() => setFormData({ ...formData, [key]: false })} /> No</label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+              {mode === 'edit' ? 'Update Product' : 'Add Product'}
             </button>
           </div>
         </form>
       </div>
     </div>
-
   );
 };
 

@@ -127,6 +127,7 @@ const productCategorySlice = createSlice({
         state.error = null;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
+        console.log(action.payload);
         state.loading = false;
         state.categories = action.payload;
       })

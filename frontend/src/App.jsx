@@ -28,6 +28,7 @@ import ChangePassword from './pages/account/ChangePassword';
 import Dashboard from './pages/admin/Dashboard';
 import Products from './pages/admin/Products';
 import ProductCategories from './pages/admin/settings/ProductCategories';
+import ProductBrands from './pages/admin/settings/ProductBrands';
 import SiteSettings from './pages/admin/settings/SiteSettings';
 import DeliveryZones from './pages/admin/settings/DeliveryZones';
 
@@ -54,13 +55,14 @@ function App() {
         </Route>
 
         {/* Admin Routes */}
-        <Route element={<AdminRoute><DashboardLayout /></AdminRoute>}>
-          <Route path="admin/dashboard" element={<Dashboard />} />
-          <Route path="admin/products" element={<Products />} />
+        <Route path="admin" element={<AdminRoute><DashboardLayout /></AdminRoute>}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="products" element={<Products />} />
           
           {/* Settings Sub-Routes */}
-          <Route path="admin/settings" element={<SettingsLayout />}>
+          <Route path="settings" element={<SettingsLayout />}>
             <Route path="product-categories" element={<ProductCategories />} />
+            <Route path="product-brands" element={<ProductBrands />} />
             <Route path="site" element={<SiteSettings />} />
             <Route path="delivery-zones" element={<DeliveryZones />} />
             {/* Add other settings routes here */}

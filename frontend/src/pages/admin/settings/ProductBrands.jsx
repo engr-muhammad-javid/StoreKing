@@ -1,72 +1,69 @@
 import React, { useState, useEffect} from 'react';
 import { FaPlus } from 'react-icons/fa';
-import Form from '../../components/admin/product/Form';
-import Row from '../../components/admin/product/Row';
+import Form from '../../../components/admin/settings/brand/Form';
+import Row from '../../../components/admin/settings/brand/Row';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify'; 
 
 import { 
-  fetchProducts, 
-  createProduct, 
-  updateProduct,
-  resetProductState,
-  clearCurrentProduct
-} from '../../store/slices/productSlice';
+  fetchBrands, 
+  createBrand, 
+  updateBrand,
+  resetBrandState,
+  clearCurrentBrand
+} from '../../../store/slices/productBrandSlice';
 
-const Products = () => {
+const ProductBrands = () => {
 
   const dispatch = useDispatch();
-  const {products, loading } = useSelector(state => state.product);
+  const { brands, loading } = useSelector(state => state.productBrand);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingBrand, setEditingBrand] = useState(null);
  
+
   const handleAdd = () => {
-        setEditingProduct(null);
+        setEditingBrand(null);
         setModalOpen(true);
   };
 
-  const handleEdit = (product) => {
-        setEditingProduct(product);
+  const handleEdit = (brand) => {
+        setEditingBrand(brand);
         setModalOpen(true);
   };
-
 
 
   const handleSubmit = async (data) => {
-    const action = editingProduct
-    ? updateProduct({ data, id: editingProduct._id })
-    : createProduct(data);
+    const action = editingBrand
+    ? updateBrand({ data, id: editingBrand._id })
+    : createBrand(data);
 
     try{
         const result = await dispatch(action);
         if(result.meta.requestStatus === 'rejected'){
-            toast.error(result.payload || `Failed to ${editingProduct ? "update" : "create"} product`);
+            toast.error(result.payload || `Failed to ${editingBrand ? "update" : "create"} brand`);
         }else{
-            toast.success(result.payload.message || `Product ${editingProduct ? "updated" : "created"} successfully`);
-            dispatch(fetchProducts());
+            toast.success(result.payload.message || `Brand ${editingBrand ? "updated" : "created"} successfully`);
+            dispatch(fetchBrands());
             setModalOpen(false);
-            dispatch(clearCurrentProduct());
+            dispatch(clearCurrentBrand());
         }
     }catch(error){
         toast.error("An error occurred: " + error.message);
     }
   };
 
-
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchBrands());
     return () => {
-      dispatch(resetProductState());
-      
+      dispatch(resetBrandState());
     };
   }, [dispatch]);
-
 
  
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Products</h2>
+        <h2 className="text-2xl font-semibold">Product Brands</h2>
         <button 
           onClick={handleAdd}
           className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
@@ -76,33 +73,31 @@ const Products = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-600">Loading products...</div>
+        <div className="text-center py-10 text-gray-600">Loading brands...</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto text-sm border border-gray-200">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Category</th>
-                <th className="px-4 py-3 text-left font-medium">Buying Price</th>
-                <th className="px-4 py-3 text-left font-medium">Selling Price</th>
+                <th className="px-4 py-3 text-left font-medium">Parent Brand</th>
                 <th className="px-4 py-3 text-left font-medium">Status</th>
                 <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-                {products.length === 0 ? (
+                {brands.length === 0 ? (
                 <tr>
                     <td colSpan="4" className="text-center py-4 text-gray-500">
-                        No products found.
+                        No brands found.
                     </td>
                     </tr>
                 ) : ( 
-                    products.map((product) => (
+                    brands.map((brand) => (
 
                         <Row
-                            key={product._id}
-                            fullData={product}
+                            key={brand._id}
+                            fullData={brand}
                             onEdit={handleEdit}
                         />
                         ))
@@ -112,16 +107,15 @@ const Products = () => {
           </table>
         </div>
       )}
-      
       <Form
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
-        initialData={editingProduct}
-        mode={editingProduct ? 'edit' : 'add'}
+        initialData={editingBrand}
+        mode={editingBrand ? 'edit' : 'add'}
       />
     </div>
   );
 };
 
-export default Products;
+export default ProductBrands;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect} from 'react';
 import { FaPlus } from 'react-icons/fa';
 import From from '../../../components/admin/settings/category/Form';
 import Row from '../../../components/admin/settings/category/Row';
@@ -97,10 +97,6 @@ const ProductCategories = () => {
 
                         <Row
                             key={category._id}
-                            id={category._id}
-                            name={category.name}
-                            parent={category.parent}
-                            isActive={category.isActive}
                             fullData={category}
                             onEdit={handleEdit}
                         />

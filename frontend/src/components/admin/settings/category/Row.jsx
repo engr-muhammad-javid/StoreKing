@@ -4,8 +4,8 @@ import { deleteCategory } from '../../../../store/slices/productCategorySlice';
 import { toast } from 'react-toastify'; 
 import { useDispatch} from "react-redux";
 
-export default function Row({id, name, parent, isActive, fullData, onEdit }) {
-
+export default function Row({fullData, onEdit }) {
+    
     const dispatch = useDispatch();
 
     const handleDelete = (id) => {
@@ -23,12 +23,12 @@ export default function Row({id, name, parent, isActive, fullData, onEdit }) {
     };
 
   return (
-     <tr key={id} className="border-t hover:bg-gray-50">
-        <td className="px-4 py-3">{name}</td>
-        <td className="px-4 py-3">{parent?.name || '-'}</td>
+     <tr key={fullData.id} className="border-t hover:bg-gray-50">
+        <td className="px-4 py-3">{fullData.name}</td>
+        <td className="px-4 py-3">{fullData.parent?.name || '-'}</td>
         <td className="px-4 py-3">
-        <span className={`px-3 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {isActive ? 'Active' : 'Inactive'}
+        <span className={`px-3 py-1 text-xs rounded-full font-semibold ${fullData.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {fullData.isActive ? 'Active' : 'Inactive'}
         </span>
         </td>
         <td className="px-4 py-3 flex gap-2 flex-wrap">
@@ -42,7 +42,7 @@ export default function Row({id, name, parent, isActive, fullData, onEdit }) {
             <FaEdit /> Edit
         </button>
         <button 
-            onClick={() => handleDelete(id)}
+            onClick={() => handleDelete(fullData.id)}
             className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700"
         >
             <FaTrash /> Delete

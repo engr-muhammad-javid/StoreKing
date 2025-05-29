@@ -23,6 +23,8 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
+    
+
     const categories = await Category.find()
       .populate('parent', 'name') // This will populate the parent field with just the name
       .lean();

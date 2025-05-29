@@ -2,15 +2,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { FaTimes, FaSave } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
-const Form = ({ isOpen, onClose, onSubmit, initialData = {}, existingCategories, mode = 'add' }) => {
+const Form = ({ isOpen, onClose, onSubmit, initialData = {}, mode = 'add' }) => {
  
-console.log(initialData);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    url_key: '',
+    slug: '',
     image: '',
-    parent: '',
     isActive: true,
 
   });
@@ -20,28 +18,33 @@ console.log(initialData);
     const {
       name = '',
       description = '',
-      url_key = '',
+      slug = '',
       image = '',
-      parent = '',
       isActive = true
     } = initialData || {};
 
     setFormData({
       name,
       description,
-      url_key,
+      slug,
       image,
-      parent: parent?._id || parent || '',
       isActive: isActive !== false,
     });
 
   }, [initialData]);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(
+  (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
-  }, [formData, onSubmit, onClose]);
+    const result = onSubmit(formData);
+    if (result?.then) {
+      result.then(() => onClose());
+    } else {
+      onClose(); // fallback
+    }
+  },
+  [formData, onSubmit, onClose]
+);
 
 
   if (!isOpen) return null;
@@ -57,11 +60,11 @@ console.log(initialData);
           </button>
 
           {/* Title */}
-          <h2 className="text-lg font-semibold mb-6">Product Categories</h2>
+          <h2 className="text-lg font-semibold mb-6">Product Brands</h2>
 
           {/* Name */}
           <div className="mb-4">
-            <label htmlFor="categoryName" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Name *</label>
+            <label htmlFor="brandName" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Name *</label>
             <input
               type="text"
               value={formData.name}
@@ -71,26 +74,9 @@ console.log(initialData);
             />
           </div>
 
-          {/* Parent Category */}
-          <div className="mb-4">
-            <label htmlFor="parentCategory"  className="block text-xs font-medium text-gray-600 mb-1 uppercase">Parent Category</label>
-            <select
-              value={formData.parent}
-              onChange={(e) => setFormData({ ...formData, parent: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">--</option>
-              {existingCategories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Status */}
           <div className="flex items-center gap-4 mt-2">
-            <label htmlFor="categoryStatus">
+            <label htmlFor="brandStatus">
               <input
                 type="radio"
                 name="status"
@@ -112,29 +98,30 @@ console.log(initialData);
             </label>
           </div>
 
-          {/* Image Upload */}
-          <div className="mb-4">
-            <label htmlFor="categoryImage" className="block text-xs font-medium text-gray-600 mb-1 uppercase">
-              Image (640px, 960px)
+         {/* Image Upload */}
+        <div className="mb-4">
+            <label htmlFor="brandImage" className="block text-xs font-medium text-gray-600 mb-1 uppercase">
+                Image (640px, 960px)
             </label>
+            {typeof formData.image === 'string' && formData.image && (
+                <img src={formData.image} alt="Brand" className="w-24 h-auto mb-2 rounded border" />
+            )}
             <input
-              id="imageUpload"
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={(e) =>
-                setFormData({ ...formData, image: e.target.files[0] })
-              }
-              className="w-full border border-gray-300 rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:bg-gray-50 file:text-gray-700"
+                id="imageUpload"
+                type="file"
+                name="image"
+                accept="image/*"
+                onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                className="w-full border border-gray-300 rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:bg-gray-50 file:text-gray-700"
             />
-          </div>
+        </div>
           
           <div className="mb-4">
-            <label htmlFor="categoryUrlKey" className="block text-xs font-medium text-gray-600 mb-1 uppercase">URL Key *</label>
+            <label htmlFor="brandSlug" className="block text-xs font-medium text-gray-600 mb-1 uppercase">URL Key *</label>
             <input
               type="text"
-              value={formData.url_key}
-              onChange={(e) => setFormData({ ...formData, url_key: e.target.value })}
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -142,7 +129,7 @@ console.log(initialData);
 
           {/* Description */}
           <div className="mb-4">
-            <label htmlFor="categoryDescription" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Description</label>
+            <label htmlFor="brandDescription" className="block text-xs font-medium text-gray-600 mb-1 uppercase">Description</label>
             <textarea
                value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -163,7 +150,7 @@ console.log(initialData);
             </button>
             <button
               type="submit"
-              disabled={!formData.name || !formData.url_key}
+              disabled={!formData.name || !formData.slug}
               className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
             >
               <FaSave className="inline mr-2" />

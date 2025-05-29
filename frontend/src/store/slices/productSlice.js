@@ -1,4 +1,4 @@
-// src/store/productSlice.js
+// src/store/slices/productSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { 
   postWithToken, 
@@ -14,7 +14,6 @@ export const fetchProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const resp = await getWithToken(endPoint.product);
-
       if (!resp.status) {
         return rejectWithValue(resp.message || "Failed to fetch products");
       }
@@ -24,8 +23,6 @@ export const fetchProducts = createAsyncThunk(
     }
   }
 );
-
-
 
 export const fetchSingleProduct = createAsyncThunk(
   "product/fetchSingleProduct",
@@ -48,7 +45,7 @@ export const createProduct = createAsyncThunk(
     try {
       const resp = await postWithToken(productData, endPoint.product);
       if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to create Product");
+        return rejectWithValue(resp.message || "Failed to create product");
       }
       return resp.content;
     } catch (error) {
@@ -59,11 +56,11 @@ export const createProduct = createAsyncThunk(
 
 export const updateProduct = createAsyncThunk(
   "product/updateProduct",
-  async ({data, id}, { rejectWithValue }) => {
+  async ({ data, id }, { rejectWithValue }) => {
     try {
       const resp = await putWithToken(data, `${endPoint.product}/${id}`);
       if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to update Product");
+        return rejectWithValue(resp.message || "Failed to update product");
       }
       return resp.content;
     } catch (error) {
@@ -78,7 +75,7 @@ export const deleteProduct = createAsyncThunk(
     try {
       const resp = await deleteWithToken(`${endPoint.product}/${id}`);
       if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to delete Product");
+        return rejectWithValue(resp.message || "Failed to delete product");
       }
       return id; // Return the deleted product ID
     } catch (error) {
@@ -87,6 +84,7 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
+// Slice
 const productSlice = createSlice({
   name: "product",
   initialState: {
@@ -121,8 +119,7 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
-    
+
       // Fetch Single Product
       .addCase(fetchSingleProduct.pending, (state) => {
         state.loading = true;
@@ -136,7 +133,7 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Create Product
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
@@ -152,7 +149,7 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Update Product
       .addCase(updateProduct.pending, (state) => {
         state.loading = true;
@@ -176,7 +173,7 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Delete Product
       .addCase(deleteProduct.pending, (state) => {
         state.loading = true;
