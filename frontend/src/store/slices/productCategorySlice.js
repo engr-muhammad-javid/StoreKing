@@ -71,7 +71,7 @@ export const createCategory = createAsyncThunk(
 
 export const updateCategory = createAsyncThunk(
   "category/updateCategory",
-  async ({ id, data }, { rejectWithValue }) => {
+  async ({data, id}, { rejectWithValue }) => {
     try {
       const resp = await putWithToken(data, `${endPoint.category}/${id}`);
       if (!resp.status) {

@@ -26,8 +26,6 @@ const AddressModal = ({ isOpen, onClose, onSubmit, initialData = {}, mode = 'add
       ...(initialData && initialData._id && {addressId: initialData._id }), 
     };
 
-    console.log(payload);
-
     onSubmit(payload);
     onClose();
   };

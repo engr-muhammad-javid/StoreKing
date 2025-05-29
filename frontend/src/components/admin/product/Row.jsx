@@ -1,22 +1,22 @@
 import React from 'react'
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { deleteCategory } from '../../../../store/slices/productCategorySlice';
+import { deleteProduct } from '../../../store/slices/productSlice';
 import { toast } from 'react-toastify'; 
 import { useDispatch} from "react-redux";
 
-export default function CategoryRow({id, name, parent, isActive, fullData, onEdit }) {
+export default function Row({id, name, isActive, fullData, onEdit }) {
 
     const dispatch = useDispatch();
 
     const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this category?')) {
-            dispatch(deleteCategory(id))
+        if (window.confirm('Are you sure you want to delete this product?')) {
+            dispatch(deleteProduct(id))
             .then((result) => {
-                if (deleteCategory.fulfilled.match(result)) {
-                toast.success("Category deleted successfully!");
+                if (deleteProduct.fulfilled.match(result)) {
+                toast.success("Product deleted successfully!");
                 }
-                if (deleteCategory.rejected.match(result)) {
-                toast.error(result.payload || "Failed to delete category");
+                if (deleteProduct.rejected.match(result)) {
+                toast.error(result.payload || "Failed to delete product");
                 }
             });
         }
@@ -25,7 +25,6 @@ export default function CategoryRow({id, name, parent, isActive, fullData, onEdi
   return (
      <tr key={id} className="border-t hover:bg-gray-50">
         <td className="px-4 py-3">{name}</td>
-        <td className="px-4 py-3">{parent?.name || '-'}</td>
         <td className="px-4 py-3">
         <span className={`px-3 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             {isActive ? 'Active' : 'Inactive'}

@@ -4,8 +4,7 @@ import { sendResponse, sendError } from "../helper/response.js";
 
 export const createCategory = async (req, res) => {
   try {
-  
-
+    
     const { name, description, image, url_key, parent } = req.body;
     const existing = await Category.findOne({ url_key });
     if (existing) return sendResponse(res, false, "Category already exists");

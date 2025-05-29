@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { FaPlus } from 'react-icons/fa';
-// import CategoryModal from '../../../components/admin/settings/category/CategoryModal';
-import CategoryRow from '../../../components/admin/settings/category/CategoryRow';
+import From from '../../../components/admin/settings/category/Form';
+import Row from '../../../components/admin/settings/category/Row';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify'; 
 
@@ -16,16 +16,10 @@ import {
 const ProductCategories = () => {
 
   const dispatch = useDispatch();
-  const { 
-    categories, 
-    loading, 
-    error, 
-    success,
-    currentCategory 
-  } = useSelector(state => state.productCategory);
-
+  const { categories, loading } = useSelector(state => state.productCategory);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+ 
 
   const handleAdd = () => {
         setEditingCategory(null);
@@ -39,40 +33,24 @@ const ProductCategories = () => {
 
 
   const handleSubmit = async (data) => {
-      if (editingCategory) {
-          try {
-      
-              const result = await dispatch(updateCategory(data));
-      
-              if (updateCategory.rejected.match(result)) {
-                  toast.error(result.payload || "Catwegory Not Updated");
-              } else {
-                  toast.success(result.payload.message || "Category Updated successfully!");
-              }
-      
-          } catch (error) {
-            toast.error("Failed to update Address: " + error.message);
-          }
+    const action = editingCategory
+    ? updateCategory({ data, id: editingCategory._id })
+    : createCategory(data);
 
-
-      } else {
-          try {
-      
-              const result = await dispatch(createCategory(data));
-      
-              if (createCategory.rejected.match(result)) {
-                  toast.error(result.payload || "Category Not Created");
-              } else {
-                  toast.success(result.payload.message || "Category Created successfully!");
-              }
-      
-          } catch (error) {
-            toast.error("Failed to create Category: " + error.message);
-          }
-      }
+    try{
+        const result = await dispatch(action);
+        if(result.meta.requestStatus === 'rejected'){
+            toast.error(result.payload || `Failed to ${editingCategory ? "update" : "create"} category`);
+        }else{
+            toast.success(result.payload.message || `Category ${editingCategory ? "updated" : "created"} successfully`);
+            dispatch(fetchCategories());
+            setModalOpen(false);
+            dispatch(clearCurrentCategory());
+        }
+    }catch(error){
+        toast.error("An error occurred: " + error.message);
+    }
   };
-
-
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -82,13 +60,6 @@ const ProductCategories = () => {
   }, [dispatch]);
 
  
-  // useEffect(() => {
-  //   if (error) {
-  //     toast.error(error);
-  //     dispatch(resetCategoryState());
-  //   }
-  // }, [error, dispatch]);
-
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
@@ -115,38 +86,39 @@ const ProductCategories = () => {
               </tr>
             </thead>
             <tbody>
-              {categories.map((category, index) => (
+                {categories.length === 0 ? (
+                <tr>
+                    <td colSpan="4" className="text-center py-4 text-gray-500">
+                        No categories found.
+                    </td>
+                    </tr>
+                ) : ( 
+                    categories.map((category) => (
 
-                  <CategoryRow
-                      key={`category-${index}`}
-                      id={category._id}
-                      name={category.name}
-                      parent={category.parent}
-                      isActive={category.isActive}
-                      fullData={category}
-                      onEdit={handleEdit}
-                  />
-                ))}
+                        <Row
+                            key={category._id}
+                            id={category._id}
+                            name={category.name}
+                            parent={category.parent}
+                            isActive={category.isActive}
+                            fullData={category}
+                            onEdit={handleEdit}
+                        />
+                        ))
+                    )}
 
             </tbody>
           </table>
         </div>
       )}
-
-      {/* <CategoryModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditMode(false);
-          setCategoryForm({ name: '', parent: null, isActive: true });
-        }}
-        categoryData={categoryForm}
-        onInputChange={handleInputChange}
+      <From
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
+        initialData={editingCategory}
         existingCategories={categories}
-        isEdit={editMode}
-        loading={loading}
-      /> */}
+        mode={editingCategory ? 'edit' : 'add'}
+      />
     </div>
   );
 };
