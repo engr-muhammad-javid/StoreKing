@@ -11,6 +11,8 @@ export const endPoint ={
     product: '/products',
     category: '/categories',
     brand: '/brands',
+    unit: '/units',
+    tax:'/taxes',
     updateProfile: '/update/profile',
     changePassword: '/change/password',
     uploadProfilePic: '/upload/ProfilePic',

@@ -99,7 +99,7 @@ export const deleteCategory = createAsyncThunk(
   }
 );
 
-const productCategorySlice = createSlice({
+const categorySlice = createSlice({
   name: "category",
   initialState: {
     categories: [],
@@ -224,5 +224,5 @@ const productCategorySlice = createSlice({
   },
 });
 
-export const { resetCategoryState, clearCurrentCategory } = productCategorySlice.actions;
-export default productCategorySlice.reducer;
+export const { resetCategoryState, clearCurrentCategory } = categorySlice.actions;
+export default categorySlice.reducer;

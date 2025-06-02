@@ -36,7 +36,7 @@ const Sidebar = () => {
         <div className="mb-6">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">PRODUCT & STOCK</h3>
           <ul className="space-y-1">
-            <SidebarItem to="admin/products" icon={<FaBox />} text="Products" />
+            <SidebarItem to="/admin/products" icon={<FaBox />} text="Products" />
             <SidebarItem to="/purchase" icon={<FaShoppingCart />} text="Purchase" />
             <SidebarItem to="/damages" icon={<FaExclamationTriangle />} text="Damages" />
             <SidebarItem to="/stock" icon={<FaWarehouse />} text="Stock" />
@@ -52,6 +52,14 @@ const Sidebar = () => {
             <SidebarItem to="/return-orders" icon={<FaUndo />} text="Return Orders" />
           </ul>
         </div>
+
+        <div className="mb-6">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">SETUP</h3>
+          <ul className="space-y-1">
+            <SidebarItem to="/admin/settings" icon={<FaCashRegister />} text="SETTINGS" />
+          </ul>
+        </div>
+
       </div>
     </aside>
   );

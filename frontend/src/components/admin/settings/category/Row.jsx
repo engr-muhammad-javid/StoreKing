@@ -1,6 +1,6 @@
 import React from 'react'
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { deleteCategory } from '../../../../store/slices/productCategorySlice';
+import { deleteCategory } from '../../../../store/slices/categorySlice';
 import { toast } from 'react-toastify'; 
 import { useDispatch} from "react-redux";
 

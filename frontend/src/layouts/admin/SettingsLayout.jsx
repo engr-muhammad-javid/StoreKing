@@ -17,8 +17,11 @@ const SettingsLayout = () => {
     { name: 'Social Media', path: 'social-media' },
     { name: 'Sliders', path: 'sliders' },
     { name: 'Currencies', path: 'currencies' },
-    { name: 'Product Categories', path: 'product-categories' },
-    { name: 'Product Attributes', path: 'product-attributes' },
+    { name: 'Product Categories', path: 'categories' },
+    { name: 'Product Brands', path: 'brands' },
+    { name: 'Product Units', path: 'units' },
+    { name: 'Taxes', path: 'taxes' },
+    { name: 'Product Attributes', path: 'attributes' },
   ];
 
   const additionalActions = [

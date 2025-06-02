@@ -1,51 +1,51 @@
 import React, { useState, useEffect} from 'react';
 import { FaPlus } from 'react-icons/fa';
-import Form from '../../../components/admin/settings/brand/Form';
-import Row from '../../../components/admin/settings/brand/Row';
+import From from '../../../components/admin/settings/category/Form';
+import Row from '../../../components/admin/settings/category/Row';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify'; 
 
 import { 
-  fetchBrands, 
-  createBrand, 
-  updateBrand,
-  resetBrandState,
-  clearCurrentBrand
-} from '../../../store/slices/productBrandSlice';
+  fetchCategories, 
+  createCategory, 
+  updateCategory,
+  resetCategoryState,
+  clearCurrentCategory
+} from '../../../store/slices/categorySlice';
 
-const ProductBrands = () => {
+const Categories = () => {
 
   const dispatch = useDispatch();
-  const { brands, loading } = useSelector(state => state.productBrand);
+  const { categories, loading } = useSelector(state => state.productCategory);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingBrand, setEditingBrand] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
  
 
   const handleAdd = () => {
-        setEditingBrand(null);
+        setEditingCategory(null);
         setModalOpen(true);
   };
 
-  const handleEdit = (brand) => {
-        setEditingBrand(brand);
+  const handleEdit = (category) => {
+        setEditingCategory(category);
         setModalOpen(true);
   };
 
 
   const handleSubmit = async (data) => {
-    const action = editingBrand
-    ? updateBrand({ data, id: editingBrand._id })
-    : createBrand(data);
+    const action = editingCategory
+    ? updateCategory({ data, id: editingCategory._id })
+    : createCategory(data);
 
     try{
         const result = await dispatch(action);
         if(result.meta.requestStatus === 'rejected'){
-            toast.error(result.payload || `Failed to ${editingBrand ? "update" : "create"} brand`);
+            toast.error(result.payload || `Failed to ${editingCategory ? "update" : "create"} category`);
         }else{
-            toast.success(result.payload.message || `Brand ${editingBrand ? "updated" : "created"} successfully`);
-            dispatch(fetchBrands());
+            toast.success(result.payload.message || `Category ${editingCategory ? "updated" : "created"} successfully`);
+            dispatch(fetchCategories());
             setModalOpen(false);
-            dispatch(clearCurrentBrand());
+            dispatch(clearCurrentCategory());
         }
     }catch(error){
         toast.error("An error occurred: " + error.message);
@@ -53,9 +53,9 @@ const ProductBrands = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchBrands());
+    dispatch(fetchCategories());
     return () => {
-      dispatch(resetBrandState());
+      dispatch(resetCategoryState());
     };
   }, [dispatch]);
 
@@ -63,7 +63,7 @@ const ProductBrands = () => {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Product Brands</h2>
+        <h2 className="text-2xl font-semibold">Product Categories</h2>
         <button 
           onClick={handleAdd}
           className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
@@ -73,31 +73,31 @@ const ProductBrands = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-600">Loading brands...</div>
+        <div className="text-center py-10 text-gray-600">Loading categories...</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto text-sm border border-gray-200">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Parent Brand</th>
+                <th className="px-4 py-3 text-left font-medium">Parent Category</th>
                 <th className="px-4 py-3 text-left font-medium">Status</th>
                 <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-                {brands.length === 0 ? (
+                {categories.length === 0 ? (
                 <tr>
                     <td colSpan="4" className="text-center py-4 text-gray-500">
-                        No brands found.
+                        No categories found.
                     </td>
                     </tr>
                 ) : ( 
-                    brands.map((brand) => (
+                    categories.map((category) => (
 
                         <Row
-                            key={brand._id}
-                            fullData={brand}
+                            key={category._id}
+                            fullData={category}
                             onEdit={handleEdit}
                         />
                         ))
@@ -107,15 +107,16 @@ const ProductBrands = () => {
           </table>
         </div>
       )}
-      <Form
+      <From
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
-        initialData={editingBrand}
-        mode={editingBrand ? 'edit' : 'add'}
+        initialData={editingCategory}
+        existingCategories={categories}
+        mode={editingCategory ? 'edit' : 'add'}
       />
     </div>
   );
 };
 
-export default ProductBrands;
+export default Categories;

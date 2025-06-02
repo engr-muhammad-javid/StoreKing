@@ -84,7 +84,7 @@ export const deleteBrand = createAsyncThunk(
   }
 );
 
-const productBrandSlice = createSlice({
+const brandSlice = createSlice({
   name: "brand",
   initialState: {
     brands: [],
@@ -194,5 +194,5 @@ const productBrandSlice = createSlice({
   },
 });
 
-export const { resetBrandState, clearCurrentBrand } = productBrandSlice.actions;
-export default productBrandSlice.reducer;
+export const { resetBrandState, clearCurrentBrand } = brandSlice.actions;
+export default brandSlice.reducer;

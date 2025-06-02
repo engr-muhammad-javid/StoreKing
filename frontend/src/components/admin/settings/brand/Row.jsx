@@ -1,6 +1,6 @@
 import React from 'react'
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { deleteBrand } from '../../../../store/slices/productBrandSlice';
+import { deleteBrand } from '../../../../store/slices/brandSlice';
 import { toast } from 'react-toastify'; 
 import { useDispatch} from "react-redux";
 

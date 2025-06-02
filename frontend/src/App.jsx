@@ -27,8 +27,10 @@ import ChangePassword from './pages/account/ChangePassword';
 
 import Dashboard from './pages/admin/Dashboard';
 import Products from './pages/admin/Products';
-import ProductCategories from './pages/admin/settings/ProductCategories';
-import ProductBrands from './pages/admin/settings/ProductBrands';
+import Categories from './pages/admin/settings/Categories';
+import Brands from './pages/admin/settings/Brands';
+import Units from './pages/admin/settings/Units';
+import Taxes from './pages/admin/settings/Taxes';
 import SiteSettings from './pages/admin/settings/SiteSettings';
 import DeliveryZones from './pages/admin/settings/DeliveryZones';
 
@@ -39,19 +41,19 @@ function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/daily-deals" element={<Deals />} />
-          <Route path="/offers" element={<Offers />} />
-          <Route path="/flashSale" element={<FalshSale />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="daily-deals" element={<Deals />} />
+          <Route path="offers" element={<Offers />} />
+          <Route path="flashSale" element={<FalshSale />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
         </Route>
 
-        <Route element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
-          <Route path="/account/overview" element={<Overview />} />
-          <Route path="/account/info" element={<AccountInfo />} />
-          <Route path="/account/orders" element={<OrderHistory />} />
-          <Route path="/account/address" element={<Addresses />} />
-          <Route path="/account/password" element={<ChangePassword />} />
+        <Route path= "account" element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
+          <Route path="overview" element={<Overview />} />
+          <Route path="info" element={<AccountInfo />} />
+          <Route path="orders" element={<OrderHistory />} />
+          <Route path="address" element={<Addresses />} />
+          <Route path="password" element={<ChangePassword />} />
         </Route>
 
         {/* Admin Routes */}
@@ -61,8 +63,10 @@ function App() {
           
           {/* Settings Sub-Routes */}
           <Route path="settings" element={<SettingsLayout />}>
-            <Route path="product-categories" element={<ProductCategories />} />
-            <Route path="product-brands" element={<ProductBrands />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="brands" element={<Brands />} />
+            <Route path="units" element={<Units />} />
+            <Route path="taxes" element={<Taxes />} />
             <Route path="site" element={<SiteSettings />} />
             <Route path="delivery-zones" element={<DeliveryZones />} />
             {/* Add other settings routes here */}
