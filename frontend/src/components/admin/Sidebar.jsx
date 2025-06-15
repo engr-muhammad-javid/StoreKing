@@ -28,7 +28,7 @@ const Sidebar = () => {
         <div className="mb-6">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">DASHBOARD</h3>
           <ul className="space-y-1">
-            <SidebarItem to="admin/dashboard" icon={<FaBox />} text="Dashboard" />
+            <SidebarItem to="/admin/dashboard" icon={<FaBox />} text="Dashboard" />
           </ul>
         </div>
 
@@ -56,7 +56,7 @@ const Sidebar = () => {
         <div className="mb-6">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">SETUP</h3>
           <ul className="space-y-1">
-            <SidebarItem to="/admin/settings" icon={<FaCashRegister />} text="SETTINGS" />
+            <SidebarItem to="/admin/settings" icon={<FaCashRegister />} text="Settings" />
           </ul>
         </div>
 

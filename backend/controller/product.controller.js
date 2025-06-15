@@ -14,6 +14,7 @@ export const addProduct = async (req, res) => {
   try {
     const { sku, brand_id, category_id, tax_id, unit_id } = req.body;
 
+
     if (!sku) {
       return sendResponse(res, false, "SKU is required");
     }
@@ -83,7 +84,7 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { brand_id, category_id, tax_id, unit_id } = req.body;
-
+    
     // Check if provided references are valid (only if they're in the payload)
     const validationErrors = [];
 

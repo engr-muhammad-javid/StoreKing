@@ -9,7 +9,8 @@ const deliveryZoneSchema = new Schema({
   deliveryRadiusKm: { type: Number },
   deliveryChargePerKm: { type: Number },
   minimumOrderAmount: { type: Number },
-  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+  isActive: { type: Boolean, default: true },
+
   address: { type: String }
 }, {
   timestamps: true,

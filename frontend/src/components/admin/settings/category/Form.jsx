@@ -4,7 +4,6 @@ import { IoClose } from 'react-icons/io5';
 
 const Form = ({ isOpen, onClose, onSubmit, initialData = {}, existingCategories, mode = 'add' }) => {
  
-console.log(initialData);
   const [formData, setFormData] = useState({
     name: '',
     description: '',

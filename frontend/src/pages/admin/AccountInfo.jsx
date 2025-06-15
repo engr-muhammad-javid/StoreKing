@@ -3,7 +3,7 @@ import { useSelector, useDispatch} from "react-redux";
 import { updateUser } from "../../store/slices/authSlice";
 import { toast } from 'react-toastify'; 
 
-const AccountInfo = () => {
+const AdminAccountInfo = () => {
 
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
@@ -113,4 +113,4 @@ const AccountInfo = () => {
   );
 };
 
-export default AccountInfo;
+export default AdminAccountInfo;

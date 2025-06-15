@@ -1,6 +1,6 @@
 import './App.css'
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate  } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -24,15 +24,18 @@ import AccountInfo from "./pages/account/AccountInfo";
 import OrderHistory from "./pages/account/OrderHistory";
 import Addresses from './pages/account/Addresses';
 import ChangePassword from './pages/account/ChangePassword';
-
 import Dashboard from './pages/admin/Dashboard';
+import AdminAccountInfo from './pages/admin/AccountInfo';
+import ChangeAdminPassword from './pages/admin/ChangePassword';
 import Products from './pages/admin/Products';
 import Categories from './pages/admin/settings/Categories';
 import Brands from './pages/admin/settings/Brands';
+import Currencies from './pages/admin/settings/Currencies';
 import Units from './pages/admin/settings/Units';
 import Taxes from './pages/admin/settings/Taxes';
 import SiteSettings from './pages/admin/settings/SiteSettings';
 import DeliveryZones from './pages/admin/settings/DeliveryZones';
+import Company from './pages/admin/settings/Company';
 
 
 function App() {
@@ -59,15 +62,20 @@ function App() {
         {/* Admin Routes */}
         <Route path="admin" element={<AdminRoute><DashboardLayout /></AdminRoute>}>
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="profile/edit-profile" element={<AdminAccountInfo />} />
+          <Route path="profile/change-password" element={<ChangeAdminPassword />} />
           <Route path="products" element={<Products />} />
-          
+
           {/* Settings Sub-Routes */}
           <Route path="settings" element={<SettingsLayout />}>
+            <Route index element={<Navigate to="company" replace />} />
             <Route path="categories" element={<Categories />} />
             <Route path="brands" element={<Brands />} />
+            <Route path="currencies" element={<Currencies />} />
             <Route path="units" element={<Units />} />
             <Route path="taxes" element={<Taxes />} />
             <Route path="site" element={<SiteSettings />} />
+            <Route path="company" element={<Company />} />
             <Route path="delivery-zones" element={<DeliveryZones />} />
             {/* Add other settings routes here */}
           </Route>

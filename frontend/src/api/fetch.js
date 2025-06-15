@@ -130,7 +130,7 @@ export const putWithToken = async (data, endPoint, customHeaders = {}) => {
     Authorization: `Bearer ${token}`,
     ...customHeaders,
   };
-
+ 
   try {
     const resp = await axios.put(endPoint, data, {
       headers: defaultHeaders,

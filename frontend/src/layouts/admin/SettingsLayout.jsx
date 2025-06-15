@@ -8,6 +8,7 @@ const SettingsLayout = () => {
 
   // Menu items for settings section
   const settingsMenu = [
+    { name: 'Company', path: 'company' },
     { name: 'Site', path: 'site' },
     { name: 'Delivery Zones', path: 'delivery-zones' },
     { name: 'Mail', path: 'mail' },
@@ -39,26 +40,10 @@ const SettingsLayout = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Breadcrumb */}
-      <div className="flex items-center text-sm text-gray-600 mb-6">
-        {pathSegments.map((segment, index) => (
-          <React.Fragment key={segment}>
-            <Link
-              to={`/${pathSegments.slice(0, index + 1).join('/')}`}
-              className={`${index === pathSegments.length - 1 ? 'text-blue-600' : 'font-medium hover:text-blue-500'}`}
-            >
-              {segment.replace(/-/g, ' ')}
-            </Link>
-            {index < pathSegments.length - 1 && <span className="mx-2">/</span>}
-          </React.Fragment>
-        ))}
-      </div>
-
       <div className="flex gap-6 flex-1 overflow-hidden">
         {/* Settings Sidebar */}
         <div className="w-64 flex-shrink-0 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <h2 className="font-semibold text-lg mb-4">Company</h2>
             <ul className="space-y-2">
               {settingsMenu.map((item) => (
                 <li key={item.path}>
