@@ -14,7 +14,10 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => {
       )}
       {onEdit && (
         <button
-          onClick={onEdit}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            onEdit();
+          }}
           className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 text-xs rounded hover:bg-green-700"
         >
           <FaEdit /> Edit
@@ -22,7 +25,10 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => {
       )}
       {onDelete && (
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            onDelete();
+          }}
           className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700"
         >
           <FaTrash /> Delete

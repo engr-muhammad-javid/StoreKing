@@ -1,119 +1,143 @@
-import React, { useState, useEffect} from 'react';
-import { FaPlus } from 'react-icons/fa';
-import Form from '../../../components/admin/settings/unit/Form';
-import Row from '../../../components/admin/settings/unit/Row';
+// src/pages/admin/units/UnitList.js
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify'; 
-
-import { 
-  fetchUnits, 
-  createUnit, 
-  updateUnit,
+import { toast } from 'react-toastify';
+import PageHeader from '../../../components/admin/PageHeader';
+import {
+  Table,
+  CrudModal,
+  ConfirmationDialog,
+  ActionButtons,
+  ReactPaginate,
+} from '../../../components/common';
+import {
+  fetchUnits,
+  deleteUnit,
   resetUnitState,
-  clearCurrentUnit
 } from '../../../store/slices/unitSlice';
+import { openModal, closeModal } from '../../../store/slices/modalSlice';
 
 const Units = () => {
+  const dispatch = useDispatch();
+  const { units, loading, error } = useSelector((state) => state.unit);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingUnitId, setDeletingUnitId] = useState(null);
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 10;
 
-    const dispatch = useDispatch();
-    const { units, loading } = useSelector(state => state.unit);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editingUnit, setEditingUnit] = useState(null);
- 
+  const columns = [
+    { key: 'name', header: 'Name' },
+    { key: 'code', header: 'Code' },
+    {
+      key: 'isActive',
+      header: 'Status',
+      render: (item) => (
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-semibold ${
+            item.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {item.isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ];
 
-    const handleAdd = () => {
-        setEditingUnit(null);
-        setModalOpen(true);
-    };
+  const handleAdd = () => {
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'unit', mode: 'add' }));
+  };
 
-    const handleEdit = (brand) => {
-        setEditingUnit(brand);
-        setModalOpen(true);
-    };
+  const handleEdit = (unit) => {
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'unit', mode: 'edit', initialData: unit }));
+  };
 
+  const handleDelete = (id) => {
+    setDeletingUnitId(id);
+    setConfirmOpen(true);
+  };
 
-    const handleSubmit = async (data) => {
-      
-        const action = editingUnit
-        ? updateUnit({ data, id: editingUnit._id })
-        : createUnit(data);
+  const confirmDelete = async () => {
+    if (!deletingUnitId) return;
 
-        try{
-            const result = await dispatch(action);
-            if(result.meta.requestStatus === 'rejected'){
-                toast.error(result.payload || `Failed to ${editingUnit ? "update" : "create"} brand`);
-            }else{
-                toast.success(result.payload.message || `Unit ${editingUnit ? "updated" : "created"} successfully`);
-                dispatch(fetchUnits());
-                setModalOpen(false);
-                dispatch(clearCurrentUnit());
-            }
-        }catch(error){
-            toast.error("An error occurred: " + error.message);
+    try {
+      const result = await dispatch(deleteUnit(deletingUnitId));
+      if (deleteUnit.fulfilled.match(result)) {
+        toast.success('Unit deleted successfully!');
+        const newTotalPages = Math.ceil((units.length - 1) / itemsPerPage);
+        if (page >= newTotalPages && page > 0) {
+          setPage(newTotalPages - 1);
         }
-    };
+      } else {
+        toast.error(error || 'Failed to delete unit');
+      }
+    } catch (err) {
+      toast.error('An error occurred: ' + err.message);
+    } finally {
+      setDeletingUnitId(null);
+      setConfirmOpen(false);
+    }
+  };
 
-    useEffect(() => {
-        dispatch(fetchUnits());
-        return () => {
-            dispatch(resetUnitState());
-        };
+  useEffect(() => {
+    dispatch(fetchUnits());
+    return () => {
+      dispatch(resetUnitState());
+    };
   }, [dispatch]);
 
- 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetUnitState());
+    }
+  }, [error, dispatch]);
+
+  const paginatedUnits = units.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+  const totalPages = Math.ceil(units.length / itemsPerPage);
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Units</h2>
-        <button 
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          <FaPlus /> Add New
-        </button>
-      </div>
+      <PageHeader title="Units" onAdd={handleAdd} />
 
-      {loading ? (
-        <div className="text-center py-10 text-gray-600">Loading Units...</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto text-sm border border-gray-200">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Code</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-                {units.length === 0 ? (
-                <tr>
-                    <td colSpan="4" className="text-center py-4 text-gray-500">
-                        No units found.
-                    </td>
-                    </tr>
-                ) : ( 
-                    units.map((unit) => (
+      <Table
+        columns={columns}
+        data={paginatedUnits}
+        loading={loading.fetch || loading.delete}
+        emptyMessage="No units found."
+        renderRowActions={(item) => (
+          <ActionButtons onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item._id)} />
+        )}
+      />
 
-                        <Row
-                            key={unit._id}
-                            fullData={unit}
-                            onEdit={handleEdit}
-                        />
-                        ))
-                    )}
-
-            </tbody>
-          </table>
+      {totalPages > 1 && (
+        <div className="flex justify-end mt-4">
+          <ReactPaginate
+            previousLabel={'Previous'}
+            nextLabel={'Next'}
+            breakLabel={'...'}
+            pageCount={totalPages}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={({ selected }) => setPage(selected)}
+            containerClassName={'flex gap-2 items-center'}
+            pageClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            activeClassName={'bg-blue-600 text-white border-blue-600'}
+            previousClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            nextClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            disabledClassName={'opacity-50 cursor-not-allowed'}
+            breakClassName={'px-3 py-1'}
+          />
         </div>
       )}
-      <Form
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingUnit}
-        mode={editingUnit ? 'edit' : 'add'}
+
+      <CrudModal />
+      <ConfirmationDialog
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this unit?"
       />
     </div>
   );

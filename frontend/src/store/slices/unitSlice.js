@@ -1,198 +1,139 @@
-// src/store/unitSlice.js
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { 
-  postWithToken, 
-  getWithToken, 
-  putWithToken, 
-  deleteWithToken 
-} from "../../api/fetch";
-import { endPoint } from "../../utils/endpoint";
+// src/store/slices/unitSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+  getWithToken,
+  postWithToken,
+  putWithToken,
+  deleteWithToken,
+} from '../../api/fetch';
+import { endPoint } from '../../utils/endpoint';
 
-// Async thunks for unit operations
-export const fetchUnits = createAsyncThunk(
-  "unit/fetchUnits",
-  async (_, { rejectWithValue }) => {
-    try {
-      const resp = await getWithToken(endPoint.unit);
-      if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to fetch units");
-      }
-      return resp.content;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+// Thunks
+export const fetchUnits = createAsyncThunk('unit/fetchUnits', async (_, { rejectWithValue }) => {
+  try {
+    const res = await getWithToken(endPoint.unit);
+    if (!res.status) return rejectWithValue(res.message || 'Failed to fetch units');
+    return res.content;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
 
-export const fetchSingleUnit = createAsyncThunk(
-  "unit/fetchSingleUnit",
-  async (id, { rejectWithValue }) => {
-    try {
-      const resp = await getWithToken(`${endPoint.unit}/${id}`);
-      if (!resp.status) {
-        return rejectWithValue(resp.message || "Unit not found");
-      }
-      return resp.content;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+export const createUnit = createAsyncThunk('unit/createUnit', async (data, { rejectWithValue }) => {
+  try {
+    const res = await postWithToken(data, endPoint.unit);
+    if (!res.status) return rejectWithValue(res.message || 'Failed to create unit');
+    return res.content;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
 
-export const createUnit = createAsyncThunk(
-  "unit/createUnit",
-  async (unitData, { rejectWithValue }) => {
-    try {
-      const resp = await postWithToken(unitData, endPoint.unit);
-      if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to create unit");
-      }
-      return resp.content;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+export const updateUnit = createAsyncThunk('unit/updateUnit', async ({ data, id }, { rejectWithValue }) => {
+  try {
+    const res = await putWithToken(data, `${endPoint.unit}/${id}`);
+    if (!res.status) return rejectWithValue(res.message || 'Failed to update unit');
+    return res.content;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
 
-export const updateUnit = createAsyncThunk(
-  "unit/updateUnit",
-  async ({data, id}, { rejectWithValue }) => {
-    try {
-      const resp = await putWithToken(data, `${endPoint.unit}/${id}`);
-      if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to update unit");
-      }
-      return resp.content;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
+export const deleteUnit = createAsyncThunk('unit/deleteUnit', async (id, { rejectWithValue }) => {
+  try {
+    const res = await deleteWithToken(`${endPoint.unit}/${id}`);
+    if (!res.status) return rejectWithValue(res.message || 'Failed to delete unit');
+    return id;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
   }
-);
+});
 
-export const deleteUnit = createAsyncThunk(
-  "unit/deleteUnit",
-  async (id, { rejectWithValue }) => {
-    try {
-      const resp = await deleteWithToken(`${endPoint.unit}/${id}`);
-      if (!resp.status) {
-        return rejectWithValue(resp.message || "Failed to delete unit");
-      }
-      return id; // Return the deleted unit ID
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
-    }
-  }
-);
-
+// Slice
 const unitSlice = createSlice({
-  name: "unit",
+  name: 'unit',
   initialState: {
     units: [],
-    currentUnit: null,
-    loading: false,
+    loading: {
+      fetch: false,
+      create: false,
+      update: false,
+      delete: false,
+    },
     error: null,
     success: false,
   },
   reducers: {
     resetUnitState: (state) => {
-      state.loading = false;
+      state.loading = {
+        fetch: false,
+        create: false,
+        update: false,
+        delete: false,
+      };
       state.error = null;
       state.success = false;
-    },
-    clearCurrentUnit: (state) => {
-      state.currentUnit = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Units
       .addCase(fetchUnits.pending, (state) => {
-        state.loading = true;
+        state.loading.fetch = true;
         state.error = null;
       })
       .addCase(fetchUnits.fulfilled, (state, action) => {
-        console.log(action.payload);
-        state.loading = false;
+        state.loading.fetch = false;
         state.units = action.payload;
       })
       .addCase(fetchUnits.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.error = action.payload;
       })
-      
-      // Fetch Single Unit
-      .addCase(fetchSingleUnit.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchSingleUnit.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentUnit = action.payload;
-      })
-      .addCase(fetchSingleUnit.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Create Unit
       .addCase(createUnit.pending, (state) => {
-        state.loading = true;
+        state.loading.create = true;
         state.error = null;
         state.success = false;
       })
       .addCase(createUnit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.success = true;
         state.units.push(action.payload);
       })
       .addCase(createUnit.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.error = action.payload;
       })
-      
-      // Update Unit
       .addCase(updateUnit.pending, (state) => {
-        state.loading = true;
+        state.loading.update = true;
         state.error = null;
         state.success = false;
       })
       .addCase(updateUnit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.success = true;
-        const index = state.units.findIndex(
-          (unt) => unt._id === action.payload._id
-        );
-        if (index !== -1) {
-          state.units[index] = action.payload;
-        }
-        if (state.currentUnit?._id === action.payload._id) {
-          state.currentUnit = action.payload;
-        }
+        const index = state.units.findIndex((u) => u._id === action.payload._id);
+        if (index !== -1) state.units[index] = action.payload;
       })
       .addCase(updateUnit.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.error = action.payload;
       })
-      
-      // Delete Unit
       .addCase(deleteUnit.pending, (state) => {
-        state.loading = true;
+        state.loading.delete = true;
         state.error = null;
         state.success = false;
       })
       .addCase(deleteUnit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.success = true;
-        state.units = state.units.filter(
-          (unt) => unt._id !== action.payload
-        );
+        state.units = state.units.filter((u) => u._id !== action.payload);
       })
       .addCase(deleteUnit.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { resetUnitState, clearCurrentUnit } = unitSlice.actions;
+export const { resetUnitState } = unitSlice.actions;
 export default unitSlice.reducer;

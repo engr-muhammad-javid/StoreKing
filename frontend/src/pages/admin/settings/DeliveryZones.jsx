@@ -1,121 +1,131 @@
-import React, { useState, useEffect} from 'react';
-import { FaPlus } from 'react-icons/fa';
-import Form from '../../../components/admin/settings/delivery-zone/Form';
-import Row from '../../../components/admin/settings/delivery-zone/Row';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify'; 
-
-import { 
-  fetchdeliveryZones, 
-  createdeliveryZone, 
-  updatedeliveryZone,
-  resetdeliveryZoneState,
-  clearCurrentdeliveryZone
+import { toast } from 'react-toastify';
+import PageHeader from '../../../components/admin/PageHeader';
+import { Table, CrudModal, ConfirmationDialog, ActionButtons, ReactPaginate } from '../../../components/common';
+import {
+  fetchDeliveryZones,
+  deleteDeliveryZone,
+  resetDeliveryZoneState
 } from '../../../store/slices/deliveryZoneSlice';
+import { openModal, closeModal } from '../../../store/slices/modalSlice';
 
-const deliveryZones = () => {
-
+const DeliveryZones = () => {
   const dispatch = useDispatch();
-  const { deliveryZones, loading } = useSelector(state => state.deliveryZone);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingdeliveryZone, setEditingdeliveryZone] = useState(null);
- 
+  const { deliveryZones, loading, error } = useSelector(state => state.deliveryZone);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 10;
+
+  const columns = [
+    { key: 'name', header: 'Name' },
+    { key: 'latitude', header: 'Latitude' },
+    { key: 'longitude', header: 'Longitude' },
+    { key: 'email', header: 'Email' },
+    { key: 'phone', header: 'Phone' },
+    { key: 'deliveryRadiusKm', header: 'Radius (KM)' },
+    { key: 'deliveryChargePerKm', header: 'Charge/KM' },
+    { key: 'minimumOrderAmount', header: 'Min Order' },
+    {
+      key: 'isActive',
+      header: 'Status',
+      render: (item) => (
+        <span className={`px-3 py-1 text-xs rounded-full font-semibold ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {item.isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ];
 
   const handleAdd = () => {
-        setEditingdeliveryZone(null);
-        setModalOpen(true);
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'deliveryZone', mode: 'add' }));
   };
 
-  const handleEdit = (deliveryZone) => {
-        setEditingdeliveryZone(deliveryZone);
-        setModalOpen(true);
+  const handleEdit = (item) => {
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'deliveryZone', mode: 'edit', initialData: item }));
   };
 
+  const handleDelete = (id) => {
+    setDeletingId(id);
+    setConfirmOpen(true);
+  };
 
-  const handleSubmit = async (data) => {
-    const action = editingdeliveryZone
-    ? updatedeliveryZone({ data, id: editingdeliveryZone._id })
-    : createdeliveryZone(data);
-
-    try{
-        const result = await dispatch(action);
-        if(result.meta.requestStatus === 'rejected'){
-            toast.error(result.payload || `Failed to ${editingdeliveryZone ? "update" : "create"} deliveryZone`);
-        }else{
-            toast.success(result.payload.message || `Delivery Zone ${editingdeliveryZone ? "updated" : "created"} successfully`);
-            dispatch(fetchdeliveryZones());
-            setModalOpen(false);
-            dispatch(clearCurrentdeliveryZone());
-        }
-    }catch(error){
-        toast.error("An error occurred: " + error.message);
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      const result = await dispatch(deleteDeliveryZone(deletingId));
+      if (deleteDeliveryZone.fulfilled.match(result)) {
+        toast.success('Delivery Zone deleted successfully!');
+      } else {
+        toast.error(error || 'Failed to delete Delivery Zone');
+      }
+    } catch (err) {
+      toast.error('An error occurred: ' + err.message);
+    } finally {
+      setDeletingId(null);
+      setConfirmOpen(false);
     }
   };
 
   useEffect(() => {
-    dispatch(fetchdeliveryZones());
-    return () => {
-      dispatch(resetdeliveryZoneState());
-    };
+    dispatch(fetchDeliveryZones());
+    return () => dispatch(resetDeliveryZoneState());
   }, [dispatch]);
 
- 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetDeliveryZoneState());
+    }
+  }, [error, dispatch]);
+
+  const paginated = deliveryZones.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+  const totalPages = Math.ceil(deliveryZones.length / itemsPerPage);
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Delivery Zones</h2>
-        <button 
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          <FaPlus /> Add New
-        </button>
-      </div>
+      <PageHeader title="Delivery Zones" onAdd={handleAdd} />
 
-      {loading ? (
-        <div className="text-center py-10 text-gray-600">Loading deliveryZones...</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto text-sm border border-gray-200">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Address</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-                {deliveryZones.length === 0 ? (
-                <tr>
-                    <td colSpan="4" className="text-center py-4 text-gray-500">
-                        No deliveryZones found.
-                    </td>
-                    </tr>
-                ) : ( 
-                    deliveryZones.map((deliveryZone) => (
+      <Table
+        columns={columns}
+        data={paginated}
+        loading={loading.fetch || loading.delete}
+        emptyMessage="No delivery zones found."
+        renderRowActions={(item) => (
+          <ActionButtons
+            onEdit={() => handleEdit(item)}
+            onDelete={() => handleDelete(item._id)}
+          />
+        )}
+      />
 
-                        <Row
-                            key={deliveryZone._id}
-                            fullData={deliveryZone}
-                            onEdit={handleEdit}
-                        />
-                        ))
-                    )}
-
-            </tbody>
-          </table>
+      {totalPages > 1 && (
+        <div className="flex justify-end mt-4">
+          <ReactPaginate
+            previousLabel="Previous"
+            nextLabel="Next"
+            pageCount={totalPages}
+            onPageChange={({ selected }) => setPage(selected)}
+            containerClassName="flex gap-2 items-center"
+            pageClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            activeClassName="bg-blue-600 text-white border-blue-600"
+          />
         </div>
       )}
-      <Form
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingdeliveryZone}
-        mode={editingdeliveryZone ? 'edit' : 'add'}
+
+      <CrudModal />
+
+      <ConfirmationDialog
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this Delivery Zone?"
       />
     </div>
   );
 };
 
-export default deliveryZones;
+export default DeliveryZones;

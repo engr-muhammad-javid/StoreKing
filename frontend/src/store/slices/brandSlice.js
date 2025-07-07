@@ -89,13 +89,25 @@ const brandSlice = createSlice({
   initialState: {
     brands: [],
     currentBrand: null,
-    loading: false,
+    loading: {
+      fetch: false,
+      fetchSingle: false,
+      create: false,
+      update: false,
+      delete: false,
+    },
     error: null,
     success: false,
   },
   reducers: {
     resetBrandState: (state) => {
-      state.loading = false;
+      state.loading = {
+        fetch: false,
+        fetchSingle: false,
+        create: false,
+        update: false,
+        delete: false,
+      };
       state.error = null;
       state.success = false;
     },
@@ -107,57 +119,56 @@ const brandSlice = createSlice({
     builder
       // Fetch Brands
       .addCase(fetchBrands.pending, (state) => {
-        state.loading = true;
+        state.loading.fetch = true;
         state.error = null;
       })
       .addCase(fetchBrands.fulfilled, (state, action) => {
-        console.log(action.payload);
-        state.loading = false;
+        state.loading.fetch = false;
         state.brands = action.payload;
       })
       .addCase(fetchBrands.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.error = action.payload;
       })
       
       // Fetch Single Brand
       .addCase(fetchSingleBrand.pending, (state) => {
-        state.loading = true;
+        state.loading.fetchSingle = true;
         state.error = null;
       })
       .addCase(fetchSingleBrand.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.fetchSingle = false;
         state.currentBrand = action.payload;
       })
       .addCase(fetchSingleBrand.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetchSingle = false;
         state.error = action.payload;
       })
       
       // Create Brand
       .addCase(createBrand.pending, (state) => {
-        state.loading = true;
+        state.loading.create = true;
         state.error = null;
         state.success = false;
       })
       .addCase(createBrand.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.success = true;
         state.brands.push(action.payload);
       })
       .addCase(createBrand.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.error = action.payload;
       })
       
       // Update Brand
       .addCase(updateBrand.pending, (state) => {
-        state.loading = true;
+        state.loading.update = true;
         state.error = null;
         state.success = false;
       })
       .addCase(updateBrand.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.success = true;
         const index = state.brands.findIndex(
           (brd) => brd._id === action.payload._id
@@ -170,25 +181,25 @@ const brandSlice = createSlice({
         }
       })
       .addCase(updateBrand.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.error = action.payload;
       })
       
       // Delete Brand
       .addCase(deleteBrand.pending, (state) => {
-        state.loading = true;
+        state.loading.delete = true;
         state.error = null;
         state.success = false;
       })
       .addCase(deleteBrand.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.success = true;
         state.brands = state.brands.filter(
           (cat) => cat._id !== action.payload
         );
       })
       .addCase(deleteBrand.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.error = action.payload;
       });
   },

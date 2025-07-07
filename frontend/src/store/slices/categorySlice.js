@@ -1,11 +1,6 @@
 // src/store/categorySlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { 
-  postWithToken, 
-  getWithToken, 
-  putWithToken, 
-  deleteWithToken 
-} from "../../api/fetch";
+import { postWithToken, getWithToken, putWithToken, deleteWithToken } from "../../api/fetch";
 import { endPoint } from "../../utils/endpoint";
 
 // Async thunks for category operations
@@ -105,13 +100,27 @@ const categorySlice = createSlice({
     categories: [],
     categoryTree: [],
     currentCategory: null,
-    loading: false,
+    loading: {
+      fetch: false,
+      fetchSingle: false,
+      fetchTree: false,
+      create: false,
+      update: false,
+      delete: false,
+    },
     error: null,
     success: false,
   },
   reducers: {
     resetCategoryState: (state) => {
-      state.loading = false;
+      state.currentCategory = null;
+      state.loading = {
+        fetch: false,
+        fetchSingle: false,
+        create: false,
+        update: false,
+        delete: false,
+      };
       state.error = null;
       state.success = false;
     },
@@ -123,71 +132,70 @@ const categorySlice = createSlice({
     builder
       // Fetch Categories
       .addCase(fetchCategories.pending, (state) => {
-        state.loading = true;
+        state.loading.fetch = true;
         state.error = null;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
-        console.log(action.payload);
-        state.loading = false;
+        state.loading.fetch = false;
         state.categories = action.payload;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.error = action.payload;
       })
       
       // Fetch Category Tree
       .addCase(fetchCategoryTree.pending, (state) => {
-        state.loading = true;
+        state.loading.fetchTree = true;
         state.error = null;
       })
       .addCase(fetchCategoryTree.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.fetchTree = false;
         state.categoryTree = action.payload;
       })
       .addCase(fetchCategoryTree.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetchTree = false;
         state.error = action.payload;
       })
       
       // Fetch Single Category
       .addCase(fetchSingleCategory.pending, (state) => {
-        state.loading = true;
+        state.loading.fetchSingle = true;
         state.error = null;
       })
       .addCase(fetchSingleCategory.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.fetchSingle = false;
         state.currentCategory = action.payload;
       })
       .addCase(fetchSingleCategory.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetchSingle = false;
         state.error = action.payload;
       })
       
       // Create Category
       .addCase(createCategory.pending, (state) => {
-        state.loading = true;
+        state.loading.create = true;
         state.error = null;
         state.success = false;
       })
       .addCase(createCategory.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.success = true;
         state.categories.push(action.payload);
       })
       .addCase(createCategory.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.error = action.payload;
       })
       
       // Update Category
       .addCase(updateCategory.pending, (state) => {
-        state.loading = true;
+        state.loading.update = true;
         state.error = null;
         state.success = false;
       })
       .addCase(updateCategory.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.success = true;
         const index = state.categories.findIndex(
           (cat) => cat._id === action.payload._id
@@ -200,25 +208,25 @@ const categorySlice = createSlice({
         }
       })
       .addCase(updateCategory.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.error = action.payload;
       })
       
       // Delete Category
       .addCase(deleteCategory.pending, (state) => {
-        state.loading = true;
+        state.loading.delete = true;
         state.error = null;
         state.success = false;
       })
       .addCase(deleteCategory.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.success = true;
         state.categories = state.categories.filter(
           (cat) => cat._id !== action.payload
         );
       })
       .addCase(deleteCategory.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.delete = false;
         state.error = action.payload;
       });
   },

@@ -35,7 +35,11 @@ import Units from './pages/admin/settings/Units';
 import Taxes from './pages/admin/settings/Taxes';
 import SiteSettings from './pages/admin/settings/SiteSettings';
 import DeliveryZones from './pages/admin/settings/DeliveryZones';
-import Company from './pages/admin/settings/Company';
+import CompanySettings from './pages/admin/settings/CompanySettings';
+import MailSettings from './pages/admin/settings/MailSettings';
+import OtpSettings from './pages/admin/settings/OtpSettings';
+import NotificationSettings from './pages/admin/settings/NotificationSettings';
+import SocialSettings from './pages/admin/settings/SocialSettings';
 
 
 function App() {
@@ -69,14 +73,22 @@ function App() {
           {/* Settings Sub-Routes */}
           <Route path="settings" element={<SettingsLayout />}>
             <Route index element={<Navigate to="company" replace />} />
+            <Route path="company" element={<CompanySettings />} />
+            <Route path="site" element={<SiteSettings />} />
+            <Route path="delivery-zones" element={<DeliveryZones />} />
+            <Route path="mail" element={<MailSettings />} />
+            <Route path="otp" element={<OtpSettings />} />
+            <Route path="notification" element={<NotificationSettings />} />
+            <Route path="social-media" element={<SocialSettings />} />
+
             <Route path="categories" element={<Categories />} />
             <Route path="brands" element={<Brands />} />
             <Route path="currencies" element={<Currencies />} />
             <Route path="units" element={<Units />} />
             <Route path="taxes" element={<Taxes />} />
-            <Route path="site" element={<SiteSettings />} />
-            <Route path="company" element={<Company />} />
-            <Route path="delivery-zones" element={<DeliveryZones />} />
+            
+            
+            
             {/* Add other settings routes here */}
           </Route>
         </Route>

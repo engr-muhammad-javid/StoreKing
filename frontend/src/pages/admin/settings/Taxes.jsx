@@ -1,54 +1,80 @@
-// src/pages/admin/settings/Taxes.jsx
-
+// src/pages/admin/Taxes.js
 import React, { useState, useEffect } from 'react';
-import { FaPlus } from 'react-icons/fa';
-import Form from '../../../components/admin/settings/tax/Form';
-import Row from '../../../components/admin/settings/tax/Row';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-
+import PageHeader from '../../../components/admin/PageHeader';
+import {
+  Table,
+  CrudModal,
+  ConfirmationDialog,
+  ActionButtons,
+  ReactPaginate,
+} from '../../../components/common';
 import {
   fetchTaxes,
-  createTax,
-  updateTax,
+  deleteTax,
   resetTaxState,
-  clearCurrentTax,
 } from '../../../store/slices/taxSlice';
+import { openModal, closeModal } from '../../../store/slices/modalSlice';
 
 const Taxes = () => {
   const dispatch = useDispatch();
-  const { taxes, loading } = useSelector((state) => state.tax);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingTax, setEditingTax] = useState(null);
+  const { taxes, loading, error } = useSelector((state) => state.tax);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 10;
+
+  const columns = [
+    { key: 'name', header: 'Name' },
+    { key: 'code', header: 'Code' },
+    { key: 'taxRate', header: 'Rate (%)' },
+    {
+      key: 'isActive',
+      header: 'Status',
+      render: (item) => (
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-semibold ${
+            item.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {item.isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ];
 
   const handleAdd = () => {
-    setEditingTax(null);
-    setModalOpen(true);
+    setConfirmOpen(false);
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'tax', mode: 'add' }));
   };
 
-  const handleEdit = (tax) => {
-    setEditingTax(tax);
-    setModalOpen(true);
+  const handleEdit = (item) => {
+    setConfirmOpen(false);
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'tax', mode: 'edit', initialData: item }));
   };
 
-  const handleSubmit = async (data) => {
-    const action = editingTax
-      ? updateTax({ data, id: editingTax._id })
-      : createTax(data);
+  const handleDelete = (id) => {
+    setDeletingId(id);
+    setConfirmOpen(true);
+  };
 
-    try {
-      const result = await dispatch(action);
-      if (result.meta.requestStatus === 'rejected') {
-        toast.error(result.payload || `Failed to ${editingTax ? 'update' : 'create'} tax`);
-      } else {
-        toast.success(result.payload.message || `Tax ${editingTax ? 'updated' : 'created'} successfully`);
-        dispatch(fetchTaxes());
-        setModalOpen(false);
-        dispatch(clearCurrentTax());
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    const result = await dispatch(deleteTax(deletingId));
+    if (deleteTax.fulfilled.match(result)) {
+      toast.success('Tax deleted successfully!');
+      const newTotalPages = Math.ceil((taxes.length - 1) / itemsPerPage);
+      if (page >= newTotalPages && page > 0) {
+        setPage(newTotalPages - 1);
       }
-    } catch (error) {
-      toast.error('An error occurred: ' + error.message);
+    } else {
+      toast.error(error || 'Failed to delete tax');
     }
+    setDeletingId(null);
+    setConfirmOpen(false);
   };
 
   useEffect(() => {
@@ -58,55 +84,54 @@ const Taxes = () => {
     };
   }, [dispatch]);
 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetTaxState());
+    }
+  }, [error, dispatch]);
+
+  const paginatedData = taxes.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+  const totalPages = Math.ceil(taxes.length / itemsPerPage);
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Taxes</h2>
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          <FaPlus /> Add New
-        </button>
-      </div>
+      <PageHeader title="Taxes" onAdd={handleAdd} />
 
-      {loading ? (
-        <div className="text-center py-10 text-gray-600">Loading Taxes...</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto text-sm border border-gray-200">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Code</th>
-                <th className="px-4 py-3 text-left font-medium">Rate (%)</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {taxes.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-4 text-gray-500">
-                    No taxes found.
-                  </td>
-                </tr>
-              ) : (
-                taxes.map((tax) => (
-                  <Row key={tax._id} fullData={tax} onEdit={handleEdit} />
-                ))
-              )}
-            </tbody>
-          </table>
+      <Table
+        columns={columns}
+        data={paginatedData}
+        loading={loading.fetch || loading.delete}
+        emptyMessage="No taxes found."
+        renderRowActions={(item) => (
+          <ActionButtons onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item._id)} />
+        )}
+      />
+
+      {totalPages > 1 && (
+        <div className="flex justify-end mt-4">
+          <ReactPaginate
+            previousLabel="Previous"
+            nextLabel="Next"
+            pageCount={totalPages}
+            onPageChange={({ selected }) => setPage(selected)}
+            containerClassName="flex gap-2 items-center"
+            pageClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            activeClassName="bg-blue-600 text-white border-blue-600"
+            previousClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            nextClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            disabledClassName="opacity-50 cursor-not-allowed"
+            breakClassName="px-3 py-1"
+          />
         </div>
       )}
 
-      <Form
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingTax}
-        mode={editingTax ? 'edit' : 'add'}
+      <CrudModal />
+      <ConfirmationDialog
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this tax?"
       />
     </div>
   );

@@ -6,6 +6,7 @@ const currencySchema = new Schema({
   code: { type: String, required: true, unique: true },
   isCryptocurrency: { type: Boolean, default: false },
   exchangeRate: { type: Number, required: true },
+  isActive: { type: Boolean, default: true },
 }, {
   timestamps: true
 });

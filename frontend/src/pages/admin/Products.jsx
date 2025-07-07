@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import Table from '../../components/common/Table';
-import CrudModal from '../../components/common/CrudModal';
-import ConfirmationDialog from '../../components/common/ConfirmationDialog';
-import ActionButtons from '../../components/common/ActionButtons';
-import ProductForm from '../../components/admin/product/ProductForm';
+import PageHeader from '../../components/admin/PageHeader';
+import { Table, CrudModal, ConfirmationDialog, ActionButtons, ReactPaginate } from '../../components/common';
 import {
   fetchProducts,
-  createProduct,
-  updateProduct,
   deleteProduct,
   resetProductState,
 } from '../../store/slices/productSlice';
+import { openModal, closeModal } from '../../store/slices/modalSlice';
 
 const Products = () => {
   const dispatch = useDispatch();
-  const { products, loading } = useSelector((state) => state.product);
-  const [modalOpen, setModalOpen] = useState(false);
+  const { products, loading, error } = useSelector((state) => state.product);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
   const [deletingProductId, setDeletingProductId] = useState(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const itemsPerPage = 10;
 
   const columns = [
@@ -50,84 +43,80 @@ const Products = () => {
   ];
 
   const handleAdd = () => {
-    setEditingProduct(null);
-    setModalOpen(true);
+    setConfirmOpen(false);
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'product', mode: 'add' }));
   };
 
   const handleEdit = (product) => {
-    setEditingProduct(product);
-    setModalOpen(true);
+    setConfirmOpen(false);
+    dispatch(closeModal());
+    dispatch(openModal({ entity: 'product', mode: 'edit', initialData: product }));
   };
 
   const handleDelete = (id) => {
+    dispatch(closeModal());
     setDeletingProductId(id);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!deletingProductId) {
+      setConfirmOpen(false);
+      return;
+    }
     try {
       const result = await dispatch(deleteProduct(deletingProductId));
       if (deleteProduct.fulfilled.match(result)) {
         toast.success('Product deleted successfully!');
-        dispatch(fetchProducts());
+        const newTotalPages = Math.ceil((products.length - 1) / itemsPerPage);
+        if (page >= newTotalPages && page > 0) {
+          setPage(newTotalPages - 1);
+        }
       } else {
-        toast.error(result.payload || 'Failed to delete product');
+        toast.error(error || 'Failed to delete product');
       }
-    } catch (error) {
-      toast.error('An error occurred: ' + error.message);
-    }
-  };
-
-  const handleSubmit = async (data) => {
-    const action = editingProduct
-      ? updateProduct({ data, id: editingProduct._id })
-      : createProduct(data);
-
-    try {
-      const result = await dispatch(action);
-      if (result.meta.requestStatus === 'rejected') {
-        toast.error(result.payload?.message || `Failed to ${editingProduct ? 'update' : 'create'} product`);
-      } else {
-        toast.success(result.payload?.message || `Product ${editingProduct ? 'updated' : 'created'} successfully`);
-        dispatch(fetchProducts());
-        setModalOpen(false);
-      }
-    } catch (error) {
-      toast.error('An error occurred: ' + error.message);
+    } catch (err) {
+      toast.error('An error occurred: ' + err.message);
+    } finally {
+      setDeletingProductId(null);
+      setConfirmOpen(false);
     }
   };
 
   useEffect(() => {
     dispatch(fetchProducts());
+    setConfirmOpen(false);
     return () => {
       dispatch(resetProductState());
     };
   }, [dispatch]);
 
-  // Basic pagination
-  const paginatedProducts = products.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetProductState());
+    }
+  }, [error, dispatch]);
+
+  const paginatedProducts = products.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
   const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  const handlePageChange = ({ selected }) => {
+    setPage(selected);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Products</h2>
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          <FaPlus /> Add New
-        </button>
-      </div>
+      <PageHeader title="Products" onAdd={handleAdd} />
 
       <Table
         columns={columns}
         data={paginatedProducts}
-        loading={loading}
+        loading={loading.fetch || loading.delete}
         emptyMessage="No products found."
         renderRowActions={(item) => (
           <ActionButtons
-            // onView={() => alert('View not implemented')} // Implement view logic if needed
             onEdit={() => handleEdit(item)}
             onDelete={() => handleDelete(item._id)}
           />
@@ -135,34 +124,27 @@ const Products = () => {
       />
 
       {totalPages > 1 && (
-        <div className="flex justify-end gap-2 mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2">{`Page ${page} of ${totalPages}`}</span>
-          <button
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={page === totalPages}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
-          >
-            Next
-          </button>
+        <div className="flex justify-end mt-4">
+          <ReactPaginate
+            previousLabel={'Previous'}
+            nextLabel={'Next'}
+            breakLabel={'...'}
+            pageCount={totalPages}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={handlePageChange}
+            containerClassName={'flex gap-2 items-center'}
+            pageClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            activeClassName={'bg-blue-600 text-white border-blue-600'}
+            previousClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            nextClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            disabledClassName={'opacity-50 cursor-not-allowed'}
+            breakClassName={'px-3 py-1'}
+          />
         </div>
       )}
 
-      <CrudModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-        FormComponent={ProductForm}
-        initialData={editingProduct}
-        mode={editingProduct ? 'edit' : 'add'}
-        title={editingProduct ? 'Edit Product' : 'Add Product'}
-      />
+      <CrudModal />
 
       <ConfirmationDialog
         isOpen={confirmOpen}

@@ -12,16 +12,21 @@ import { msg } from "../i18n/text.js";
 // Add Product
 export const addProduct = async (req, res) => {
   try {
-    const { sku, brand_id, category_id, tax_id, unit_id } = req.body;
+    const { sku, slug, brand_id, category_id, tax_id, unit_id } = req.body;
 
 
     if (!sku) {
       return sendResponse(res, false, "SKU is required");
     }
 
-    const existing = await Product.findOne({ sku });
-    if (existing) {
+    const sku_existing = await Product.findOne({ sku });
+    if (sku_existing) {
       return sendResponse(res, false, "Product with this SKU already exists");
+    }
+
+    const slug_existing = await Product.findOne({ slug });
+    if (slug_existing) {
+      return sendResponse(res, false, "Product with this Slug already exists");
     }
 
     // Validate foreign references
@@ -37,12 +42,16 @@ export const addProduct = async (req, res) => {
     if (!tax) return sendResponse(res, false, "Invalid tax_id");
     if (!unit) return sendResponse(res, false, "Invalid unit_id");
 
+    
+
     // Save Product
     const newProduct = new Product(req.body);
+    
     const saved = await newProduct.save();
-
+    
     return sendResponse(res, true, "Product created successfully", saved);
   } catch (error) {
+    console.log(error);
     return sendError(res, error.message || error);
   }
 };

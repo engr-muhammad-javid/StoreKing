@@ -1,13 +1,12 @@
-// src/store/companySlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { 
-  postWithToken, 
-  getWithToken, 
-  putWithToken 
+import {
+  postWithToken,
+  getWithToken,
+  putWithToken,
 } from "../../api/fetch";
 import { endPoint } from "../../utils/endpoint";
 
-// Async thunks for company operations
+// Fetch Company
 export const fetchCompany = createAsyncThunk(
   "company/fetchCompany",
   async (_, { rejectWithValue }) => {
@@ -23,6 +22,7 @@ export const fetchCompany = createAsyncThunk(
   }
 );
 
+// Create Company
 export const createCompany = createAsyncThunk(
   "company/createCompany",
   async (companyData, { rejectWithValue }) => {
@@ -38,9 +38,10 @@ export const createCompany = createAsyncThunk(
   }
 );
 
+// Update Company
 export const updateCompany = createAsyncThunk(
   "company/updateCompany",
-  async ({data}, { rejectWithValue }) => {
+  async ({ data }, { rejectWithValue }) => {
     try {
       const resp = await putWithToken(data, endPoint.company);
       if (!resp.status) {
@@ -53,64 +54,79 @@ export const updateCompany = createAsyncThunk(
   }
 );
 
+// Slice
 const companySlice = createSlice({
   name: "company",
   initialState: {
-    company: [],
-    currentBrand: null,
-    loading: false,
+    company: null,
+    loading: {
+      fetch: false,
+      create: false,
+      update: false,
+    },
     error: null,
     success: false,
+  },
+  reducers: {
+    resetCompanyState: (state) => {
+      state.success = false;
+      state.error = null;
+      state.loading = {
+        fetch: false,
+        create: false,
+        update: false,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
       // Fetch Company
       .addCase(fetchCompany.pending, (state) => {
-        state.loading = true;
+        state.loading.fetch = true;
         state.error = null;
       })
       .addCase(fetchCompany.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.company = action.payload;
       })
       .addCase(fetchCompany.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.error = action.payload;
-        state.company = false;
       })
-      
+
       // Create Company
       .addCase(createCompany.pending, (state) => {
-        state.loading = true;
+        state.loading.create = true;
         state.error = null;
         state.success = false;
       })
       .addCase(createCompany.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = true;
+        state.loading.create = false;
         state.company = action.payload;
+        state.success = true;
       })
       .addCase(createCompany.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.error = action.payload;
       })
-      
+
       // Update Company
       .addCase(updateCompany.pending, (state) => {
-        state.loading = true;
+        state.loading.update = true;
         state.error = null;
         state.success = false;
       })
       .addCase(updateCompany.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = true;
+        state.loading.update = false;
         state.company = action.payload;
+        state.success = true;
       })
       .addCase(updateCompany.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.error = action.payload;
-      })
+      });
   },
 });
 
+export const { resetCompanyState } = companySlice.actions;
 export default companySlice.reducer;

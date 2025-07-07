@@ -1,13 +1,13 @@
-// src/store/siteSlice.js
+// src/store/slices/siteSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { 
-  postWithToken, 
-  getWithToken, 
-  putWithToken 
+import {
+  postWithToken,
+  getWithToken,
+  putWithToken,
 } from "../../api/fetch";
 import { endPoint } from "../../utils/endpoint";
 
-// Async thunks for site operations
+// Async thunk: Fetch Site Settings
 export const fetchSite = createAsyncThunk(
   "site/fetchSite",
   async (_, { rejectWithValue }) => {
@@ -23,6 +23,7 @@ export const fetchSite = createAsyncThunk(
   }
 );
 
+// Async thunk: Create Site Settings
 export const createSite = createAsyncThunk(
   "site/createSite",
   async (siteData, { rejectWithValue }) => {
@@ -38,9 +39,10 @@ export const createSite = createAsyncThunk(
   }
 );
 
+// Async thunk: Update Site Settings
 export const updateSite = createAsyncThunk(
   "site/updateSite",
-  async ({data}, { rejectWithValue }) => {
+  async ({ data }, { rejectWithValue }) => {
     try {
       const resp = await putWithToken(data, endPoint.site);
       if (!resp.status) {
@@ -53,64 +55,80 @@ export const updateSite = createAsyncThunk(
   }
 );
 
+// Slice
 const siteSlice = createSlice({
   name: "site",
   initialState: {
-    site: [],
-    currentBrand: null,
-    loading: false,
+    site: null,
+    loading: {
+      fetch: false,
+      create: false,
+      update: false,
+    },
     error: null,
     success: false,
+  },
+  reducers: {
+    resetSiteState: (state) => {
+      state.loading = {
+        fetch: false,
+        create: false,
+        update: false,
+      };
+      state.error = null;
+      state.success = false;
+    },
   },
   extraReducers: (builder) => {
     builder
       // Fetch Site
       .addCase(fetchSite.pending, (state) => {
-        state.loading = true;
+        state.loading.fetch = true;
         state.error = null;
       })
       .addCase(fetchSite.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.site = action.payload;
       })
       .addCase(fetchSite.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.fetch = false;
         state.error = action.payload;
-        state.site = false;
+        state.site = null;
       })
-      
+
       // Create Site
       .addCase(createSite.pending, (state) => {
-        state.loading = true;
+        state.loading.create = true;
         state.error = null;
         state.success = false;
       })
       .addCase(createSite.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.success = true;
         state.site = action.payload;
       })
       .addCase(createSite.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.create = false;
         state.error = action.payload;
       })
-      
+
       // Update Site
       .addCase(updateSite.pending, (state) => {
-        state.loading = true;
+        state.loading.update = true;
         state.error = null;
         state.success = false;
       })
       .addCase(updateSite.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.success = true;
         state.site = action.payload;
       })
       .addCase(updateSite.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.update = false;
         state.error = action.payload;
-      })
+      });
   },
 });
 
+export const { resetSiteState } = siteSlice.actions;
 export default siteSlice.reducer;
