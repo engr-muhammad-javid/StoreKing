@@ -1,6 +1,8 @@
 import React from 'react';
 
 const Table = ({ columns, data, renderRowActions, loading, emptyMessage = 'No data found.' }) => {
+  const hasActions = typeof renderRowActions === 'function';
+
   return (
     <div className="overflow-x-auto">
       {loading ? (
@@ -14,13 +16,16 @@ const Table = ({ columns, data, renderRowActions, loading, emptyMessage = 'No da
                   {col.header}
                 </th>
               ))}
-              {renderRowActions && <th className="px-4 py-3 text-left font-medium">Actions</th>}
+              {hasActions && <th className="px-4 py-3 text-left font-medium">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + (renderRowActions ? 1 : 0)} className="text-center py-4 text-gray-500">
+                <td
+                  colSpan={columns.length + (hasActions ? 1 : 0)}
+                  className="text-center py-4 text-gray-500"
+                >
                   {emptyMessage}
                 </td>
               </tr>
@@ -32,7 +37,7 @@ const Table = ({ columns, data, renderRowActions, loading, emptyMessage = 'No da
                       {col.render ? col.render(item) : item[col.key]}
                     </td>
                   ))}
-                  {renderRowActions && (
+                  {hasActions && (
                     <td className="px-4 py-3 flex gap-2 flex-wrap">
                       {renderRowActions(item)}
                     </td>

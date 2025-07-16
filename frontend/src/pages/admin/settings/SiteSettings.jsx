@@ -2,8 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
-import { IoClose } from "react-icons/io5";
-import { FaSave } from "react-icons/fa";
 
 import { fetchSite, createSite, updateSite, resetSiteState } from "../../../store/slices/siteSlice";
 import {
@@ -12,6 +10,7 @@ import {
   setSubmitting,
   resetForm,
 } from "../../../store/slices/formSlice";
+
 import {
   TextInput,
   SelectInput,
@@ -19,16 +18,24 @@ import {
   RadioGroup,
 } from "../../../components/common";
 
+import { hasPermission } from "../../../utils/permissions"; // ✅ Add this helper
+
 const SiteSettings = () => {
   const dispatch = useDispatch();
   const { site, loading } = useSelector((state) => state.site);
   const formState = useSelector((state) => state.form.forms.siteSettings || {});
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { permissions } = useSelector((state) => state.auth);
+
+  const canView = hasPermission(permissions, "settings/site", "view");
+  const canUpdate = hasPermission(permissions, "settings/site", "update");
 
   useEffect(() => {
-    dispatch(fetchSite());
+    if (canView) {
+      dispatch(fetchSite());
+    }
     return () => dispatch(resetSiteState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -76,7 +83,8 @@ const SiteSettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (!canUpdate || formState.isSubmitting || hasSubmitted) return;
+
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "siteSettings", isSubmitting: true }));
 
@@ -87,7 +95,7 @@ const SiteSettings = () => {
 
       try {
         const action = site ? updateSite({ data: formData }) : createSite(formData);
-        const res = await dispatch(action).unwrap();
+        await dispatch(action).unwrap();
         toast.success(`Settings ${site ? "updated" : "created"} successfully!`);
       } catch (err) {
         toast.error(err.message || "Error occurred");
@@ -96,15 +104,19 @@ const SiteSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, site, hasSubmitted]
+    [dispatch, formState, site, hasSubmitted, canUpdate]
   );
-
-  const handleClose = () => {
-    dispatch(resetForm({ entity: "siteSettings" }));
-  };
 
   const loadingSubmit = formState.isSubmitting || loading.create || loading.update;
   const isLoadingSite = loading.fetch;
+
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (isLoadingSite) {
     return (
@@ -124,11 +136,11 @@ const SiteSettings = () => {
             name="dateFormat"
             value={formState.formData?.dateFormat}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "d‑m‑Y (03‑06‑2025)", value: "d-m-Y" },
               { label: "m‑d‑Y (06‑03‑2025)", value: "m-d-Y" },
               { label: "Y‑m‑d (2025‑06‑03)", value: "Y-m-d" },
-              // add others...
             ]}
           />
           <SelectInput
@@ -136,6 +148,7 @@ const SiteSettings = () => {
             name="timeFormat"
             value={formState.formData?.timeFormat}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "12 Hour", value: "12 Hour" },
               { label: "24 Hour", value: "24 Hour" },
@@ -146,10 +159,10 @@ const SiteSettings = () => {
             name="defaultTimezone"
             value={formState.formData?.defaultTimezone}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "Asia/Dhaka", value: "Asia/Dhaka" },
               { label: "Africa/Abidjan", value: "Africa/Abidjan" },
-              // add others...
             ]}
           />
           <SelectInput
@@ -157,6 +170,7 @@ const SiteSettings = () => {
             name="defaultLanguage"
             value={formState.formData?.defaultLanguage}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "English", value: "English" },
               { label: "Bangla", value: "Bangla" },
@@ -168,47 +182,27 @@ const SiteSettings = () => {
             name="defaultSmsGateway"
             value={formState.formData?.defaultSmsGateway}
             onChange={handleChange}
-            options={[{ label: "--", value: "" }, { label: "Twilio", value: "Twilio" }, /*...*/]}
+            disabled={!canUpdate}
+            options={[
+              { label: "--", value: "" },
+              { label: "Twilio", value: "Twilio" },
+              // add others...
+            ]}
           />
-          <TextInput
-            label="Copyright"
-            name="copyright"
-            value={formState.formData?.copyright}
-            onChange={handleChange}
-          />
-          <TextInput
-            label="Android App Link"
-            name="androidAppLink"
-            value={formState.formData?.androidAppLink}
-            onChange={handleChange}
-          />
-          <TextInput
-            label="iOS App Link"
-            name="iosAppLink"
-            value={formState.formData?.iosAppLink}
-            onChange={handleChange}
-          />
-          <TextInput
-            label="Non‑Purchase Product Max Qty"
-            name="nonPurchaseProductMaxQty"
-            value={formState.formData?.nonPurchaseProductMaxQty}
-            onChange={handleChange}
-          />
-          <TextInput
-            label="Digit After Decimal"
-            name="digitAfterDecimal"
-            value={formState.formData?.digitAfterDecimal}
-            onChange={handleChange}
-          />
+          <TextInput label="Copyright" name="copyright" value={formState.formData?.copyright} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Android App Link" name="androidAppLink" value={formState.formData?.androidAppLink} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="iOS App Link" name="iosAppLink" value={formState.formData?.iosAppLink} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Non‑Purchase Product Max Qty" name="nonPurchaseProductMaxQty" value={formState.formData?.nonPurchaseProductMaxQty} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Digit After Decimal" name="digitAfterDecimal" value={formState.formData?.digitAfterDecimal} onChange={handleChange} disabled={!canUpdate} />
           <SelectInput
             label="Default Currency"
             name="defaultCurrency"
             value={formState.formData?.defaultCurrency}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "Dollars ($)", value: "Dollars ($)" },
               { label: "Rupee (₹)", value: "Rupee (₹)" },
-              // etc
             ]}
           />
           <RadioGroup
@@ -220,13 +214,9 @@ const SiteSettings = () => {
             ]}
             value={formState.formData?.currencyPosition}
             onChange={handleChange}
+            disabled={!canUpdate}
           />
-          <TextInput
-            label="Google Map Key"
-            name="googleMapKey"
-            value={formState.formData?.googleMapKey}
-            onChange={handleChange}
-          />
+          <TextInput label="Google Map Key" name="googleMapKey" value={formState.formData?.googleMapKey} onChange={handleChange} disabled={!canUpdate} />
 
           {[
             { name: "cashOnDelivery", label: "Cash On Delivery" },
@@ -244,23 +234,26 @@ const SiteSettings = () => {
               name={name}
               checked={!!formState.formData?.[name]}
               onChange={handleChange}
+              disabled={!canUpdate}
             />
           ))}
         </div>
 
-        <div className="text-right">
-          <button
-            type="submit"
-            disabled={formState.isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {formState.isSubmitting
-              ? "Saving..."
-              : site
-              ? "Update Settings"
-              : "Create Settings"}
-          </button>
-        </div>
+        {canUpdate && (
+          <div className="text-right">
+            <button
+              type="submit"
+              disabled={formState.isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {formState.isSubmitting
+                ? "Saving..."
+                : site
+                ? "Update Settings"
+                : "Create Settings"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

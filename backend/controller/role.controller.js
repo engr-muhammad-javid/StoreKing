@@ -6,6 +6,7 @@ import { sendResponse, sendError } from "../helper/response.js";
 export const createRole = async (req, res) => {
   try {
     const { name, permissions } = req.body;
+    console.log(req.body);
     const role = new Role({ name, permissions });
     await role.save();
     return sendResponse(res, true, "Role created", role);

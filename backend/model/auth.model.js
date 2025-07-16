@@ -48,9 +48,9 @@ const userSchema = new Schema({
     },
 
     role: {
-        type: String,
-        enum: ['user', 'super-admin', 'admin', 'manager', 'service'],
-        default: 'user'
+        type: Schema.Types.ObjectId,
+        ref: "Role", // 🔹 Reference to Role model
+        required: true
     },
 
     profile: {

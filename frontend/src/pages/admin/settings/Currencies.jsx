@@ -2,21 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import PageHeader from '../../../components/admin/PageHeader';
-import { Table, CrudModal, ConfirmationDialog, ActionButtons, ReactPaginate } from '../../../components/common';
+import {
+  Table,
+  CrudModal,
+  ConfirmationDialog,
+  ActionButtons,
+  ReactPaginate
+} from '../../../components/common';
 import {
   fetchCurrencies,
   deleteCurrency,
   resetCurrencyState
 } from '../../../store/slices/currencySlice';
 import { openModal, closeModal } from '../../../store/slices/modalSlice';
+import { hasPermission } from '../../../utils/permissions';
 
 const Currencies = () => {
   const dispatch = useDispatch();
   const { currencies, loading, error } = useSelector(state => state.currency);
+  const { permissions } = useSelector(state => state.auth);
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingCurrencyId, setDeletingCurrencyId] = useState(null);
   const [page, setPage] = useState(0);
   const itemsPerPage = 10;
+
+  const canCreate = hasPermission(permissions, 'settings/currencies', 'create');
+  const canEdit = hasPermission(permissions, 'settings/currencies', 'update');
+  const canDelete = hasPermission(permissions, 'settings/currencies', 'delete');
+  const canRenderActions = canEdit || canDelete;
 
   const columns = [
     { key: 'name', header: 'Name' },
@@ -114,19 +128,23 @@ const Currencies = () => {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <PageHeader title="Currencies" onAdd={handleAdd} />
+      <PageHeader title="Currencies" onAdd={canCreate ? handleAdd : null} />
 
       <Table
         columns={columns}
         data={paginated}
         loading={loading.fetch || loading.delete}
         emptyMessage="No currencies found."
-        renderRowActions={(item) => (
-          <ActionButtons
-            onEdit={() => handleEdit(item)}
-            onDelete={() => handleDelete(item._id)}
-          />
-        )}
+        renderRowActions={
+          canRenderActions
+            ? (item) => (
+                <ActionButtons
+                  onEdit={canEdit ? () => handleEdit(item) : null}
+                  onDelete={canDelete ? () => handleDelete(item._id) : null}
+                />
+              )
+            : null
+        }
       />
 
       {totalPages > 1 && (

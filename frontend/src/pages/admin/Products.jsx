@@ -1,18 +1,36 @@
+// src/pages/products/Products.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import PageHeader from '../../components/admin/PageHeader';
-import { Table, CrudModal, ConfirmationDialog, ActionButtons, ReactPaginate } from '../../components/common';
+import {
+  Table,
+  CrudModal,
+  ConfirmationDialog,
+  ActionButtons,
+  ReactPaginate,
+} from '../../components/common';
 import {
   fetchProducts,
   deleteProduct,
   resetProductState,
 } from '../../store/slices/productSlice';
 import { openModal, closeModal } from '../../store/slices/modalSlice';
+import { hasPermission } from '../../utils/permissions';
 
 const Products = () => {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.product);
+  const { permissions } = useSelector((state) => state.auth);
+
+  // Permission checks
+  const canCreate = hasPermission(permissions, 'products', 'create');
+  const canEdit = hasPermission(permissions, 'products', 'update');
+  const canDelete = hasPermission(permissions, 'products', 'delete');
+  const canView = hasPermission(permissions, 'products', 'view');
+  const canRenderActions = canEdit || canDelete;
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState(null);
   const [page, setPage] = useState(0);
@@ -43,13 +61,11 @@ const Products = () => {
   ];
 
   const handleAdd = () => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'product', mode: 'add' }));
   };
 
   const handleEdit = (product) => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'product', mode: 'edit', initialData: product }));
   };
@@ -85,12 +101,14 @@ const Products = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    if (canView) {
+      dispatch(fetchProducts());
+    }
     setConfirmOpen(false);
     return () => {
       dispatch(resetProductState());
     };
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     if (error) {
@@ -106,21 +124,33 @@ const Products = () => {
     setPage(selected);
   };
 
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-500 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <PageHeader title="Products" onAdd={handleAdd} />
+      <PageHeader title="Products" onAdd={canCreate ? handleAdd : null} />
 
       <Table
         columns={columns}
         data={paginatedProducts}
         loading={loading.fetch || loading.delete}
         emptyMessage="No products found."
-        renderRowActions={(item) => (
-          <ActionButtons
-            onEdit={() => handleEdit(item)}
-            onDelete={() => handleDelete(item._id)}
-          />
-        )}
+        renderRowActions={
+          canRenderActions
+            ? (item) => (
+                <ActionButtons
+                  onEdit={canEdit ? () => handleEdit(item) : null}
+                  onDelete={canDelete ? () => handleDelete(item._id) : null}
+                />
+              )
+            : null
+        }
       />
 
       {totalPages > 1 && (
@@ -134,10 +164,16 @@ const Products = () => {
             pageRangeDisplayed={5}
             onPageChange={handlePageChange}
             containerClassName={'flex gap-2 items-center'}
-            pageClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            pageClassName={
+              'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'
+            }
             activeClassName={'bg-blue-600 text-white border-blue-600'}
-            previousClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
-            nextClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
+            previousClassName={
+              'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'
+            }
+            nextClassName={
+              'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'
+            }
             disabledClassName={'opacity-50 cursor-not-allowed'}
             breakClassName={'px-3 py-1'}
           />

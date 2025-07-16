@@ -1,4 +1,3 @@
-// src/pages/admin/Taxes.js
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -16,10 +15,20 @@ import {
   resetTaxState,
 } from '../../../store/slices/taxSlice';
 import { openModal, closeModal } from '../../../store/slices/modalSlice';
+import { hasPermission } from '../../../utils/permissions';
 
 const Taxes = () => {
   const dispatch = useDispatch();
   const { taxes, loading, error } = useSelector((state) => state.tax);
+  const { permissions } = useSelector((state) => state.auth);
+
+  // Permissions
+  const canCreate = hasPermission(permissions, 'settings/taxes', 'create');
+  const canEdit = hasPermission(permissions, 'settings/taxes', 'update');
+  const canDelete = hasPermission(permissions, 'settings/taxes', 'delete');
+  const canView = hasPermission(permissions, 'settings/taxes', 'view');
+  const canRenderActions = canEdit || canDelete;
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [page, setPage] = useState(0);
@@ -45,13 +54,11 @@ const Taxes = () => {
   ];
 
   const handleAdd = () => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'tax', mode: 'add' }));
   };
 
   const handleEdit = (item) => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'tax', mode: 'edit', initialData: item }));
   };
@@ -78,11 +85,11 @@ const Taxes = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchTaxes());
+    if (canView) dispatch(fetchTaxes());
     return () => {
       dispatch(resetTaxState());
     };
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     if (error) {
@@ -96,16 +103,23 @@ const Taxes = () => {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <PageHeader title="Taxes" onAdd={handleAdd} />
+      <PageHeader title="Taxes" onAdd={canCreate ? handleAdd : null} />
 
       <Table
         columns={columns}
         data={paginatedData}
         loading={loading.fetch || loading.delete}
         emptyMessage="No taxes found."
-        renderRowActions={(item) => (
-          <ActionButtons onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item._id)} />
-        )}
+        renderRowActions={
+          canRenderActions
+            ? (item) => (
+                <ActionButtons
+                  onEdit={canEdit ? () => handleEdit(item) : null}
+                  onDelete={canDelete ? () => handleDelete(item._id) : null}
+                />
+              )
+            : null
+        }
       />
 
       {totalPages > 1 && (

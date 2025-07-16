@@ -1,4 +1,3 @@
-// src/pages/settings/MailSettings.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -15,7 +14,6 @@ import {
   initializeForm,
   updateFormField,
   setSubmitting,
-  resetForm,
 } from "../../../store/slices/formSlice";
 
 import {
@@ -23,16 +21,25 @@ import {
   SelectInput,
 } from "../../../components/common";
 
+import { hasPermission } from "../../../utils/permissions";
+
 const MailSettings = () => {
   const dispatch = useDispatch();
   const { mail, loading } = useSelector((state) => state.mail);
   const formState = useSelector((state) => state.form.forms.mailSettings || {});
+  const { permissions } = useSelector((state) => state.auth);
+
+  const canView = hasPermission(permissions, "settings/mail", "view");
+  const canCreate = hasPermission(permissions, "settings/mail", "create");
+  const canUpdate = hasPermission(permissions, "settings/mail", "update");
+  const canSubmit = mail ? canUpdate : canCreate;
+
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchMail());
+    if (canView) dispatch(fetchMail());
     return () => dispatch(resetMailState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -60,7 +67,8 @@ const MailSettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (formState.isSubmitting || hasSubmitted || !canSubmit) return;
+
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "mailSettings", isSubmitting: true }));
 
@@ -82,10 +90,16 @@ const MailSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, mail, hasSubmitted]
+    [dispatch, formState, mail, hasSubmitted, canSubmit]
   );
 
-  const isLoading = loading.fetch || formState.isSubmitting;
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (loading.fetch) {
     return (
@@ -152,7 +166,7 @@ const MailSettings = () => {
         <div className="text-right">
           <button
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={formState.isSubmitting || !canSubmit}
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
             {formState.isSubmitting

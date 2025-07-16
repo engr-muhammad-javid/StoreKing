@@ -1,68 +1,79 @@
 import Users from "../model/auth.model.js";
+import Role from "../model/role.model.js";
 import { sendResponse, sendError, sendToken, hashPass, sendProfile } from "../helper/response.js";
-
 import {msg} from "../i18n/text.js";
 
 export const register = async (req, res) => {
-    try{
-        const {name, email, password} = req.body;
+  try {
+    const { name, email, password, role } = req.body;
 
-        if(!name || !email || !password){
-            return sendResponse(res, false, msg.fillAllFields);
-        }else{
-            
-            const user = await Users.findOne({email});
-    
-            if(user){
-                return sendResponse(res, false, msg.userExists);
-            }
-            const hashedPassword = await hashPass(password);
-
-            const data = {
-                ...req.body,
-                password:hashedPassword,
-                role:"user",
-            };
-
-            const newUser = new Users(data);
-            const reg = await newUser.save();
-
-            return sendToken(res, reg, msg.success);
-    
-        }
-
-    }catch(error){
-        return sendError(res, error);
+    if (!name || !email || !password) {
+      return sendResponse(res, false, msg.fillAllFields);
     }
-}
+
+    const existingUser = await Users.findOne({ email });
+    if (existingUser) {
+      return sendResponse(res, false, msg.userExists);
+    }
+
+    // ✅ Determine role to use: if `role` is sent, use that ID; otherwise use "Customer"
+    let roleDoc;
+    if (role) {
+      roleDoc = await Role.findById(role);
+      if (!roleDoc) {
+        return sendResponse(res, false, "Invalid role ID provided.");
+      }
+    } else {
+      roleDoc = await Role.findOne({ name: "Customer" });
+      if (!roleDoc) {
+        return sendResponse(res, false, "Default 'Customer' role not found.");
+      }
+    }
+
+    const hashedPassword = await hashPass(password);
+
+    const newUser = new Users({
+      name,
+      email,
+      password: hashedPassword,
+      role: roleDoc._id // ✅ always store role ID
+    });
+
+    const reg = await newUser.save();
+    return sendToken(res, reg, msg.success);
+
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
 
 
 export const login = async (req, res) => {
-    try{
-        const {email, password} = req.body;
+  try {
+    const { email, password } = req.body;
 
-        if(!email || !password){
-            return sendResponse(res, false, msg.emailPassRequired);
-        }else{
-            const user = await Users.findOne({email})
-    
-            if(!user){
-                return sendResponse(res, false, msg.userIdNotFound);
-            }
-
-            const isMatch = await user.isPassMatch(password);
-
-            if(!isMatch){
-                return sendResponse(res, false, msg.auth);
-            }
-
-            return sendToken(res, user, msg.userLogin);
-        }
-
-    }catch(error){
-        return sendError(res, error);
+    if (!email || !password) {
+      return sendResponse(res, false, msg.emailPassRequired);
     }
-}
+
+    const user = await Users.findOne({ email }).populate("role");
+
+    if (!user) {
+      return sendResponse(res, false, msg.userIdNotFound);
+    }
+
+    const isMatch = await user.isPassMatch(password);
+
+    if (!isMatch) {
+      return sendResponse(res, false, msg.auth);
+    }
+
+    return sendToken(res, user, msg.userLogin);
+
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
 
 
 export const profile = async (req, res) => {

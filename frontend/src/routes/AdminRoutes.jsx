@@ -3,16 +3,15 @@ import { Navigate, useLocation } from 'react-router-dom';
 
 const AdminRoute = ({ children }) => {
   const accessToken = useSelector((state) => state.auth.accessToken);
-  const user = useSelector((state) => state.auth.user); // assuming user object is stored
+  const user = useSelector((state) => state.auth.user);
   const location = useLocation();
 
   if (!accessToken) {
-    // Not logged in
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!user || user.role !== 'admin') {
-    // Logged in but not admin
+  // Allow all roles except "customer"
+  if (user?.roleName?.toLowerCase() === "customer") {
     return <Navigate to="/" replace />;
   }
 

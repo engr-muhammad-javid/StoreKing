@@ -9,27 +9,40 @@ import {
   updateCompany,
   resetCompanyState,
 } from "../../../store/slices/companySlice";
+
 import {
   initializeForm,
   updateFormField,
   setSubmitting,
   resetForm,
 } from "../../../store/slices/formSlice";
+
 import {
   TextInput,
   SelectInput,
 } from "../../../components/common";
 
+import { hasPermission } from "../../../utils/permissions";
+
 const CompanySettings = () => {
   const dispatch = useDispatch();
   const { company, loading } = useSelector((state) => state.company);
   const formState = useSelector((state) => state.form.forms.companySettings || {});
+  const { permissions } = useSelector((state) => state.auth);
+
+  const canView = hasPermission(permissions, "settings/company", "view");
+  const canEdit = hasPermission(permissions, "settings/company", "update");
+  const canCreate = hasPermission(permissions, "settings/company", "create");
+  const canSubmit = company ? canEdit : canCreate;
+
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchCompany());
+    if (canView) {
+      dispatch(fetchCompany());
+    }
     return () => dispatch(resetCompanyState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -61,7 +74,7 @@ const CompanySettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (formState.isSubmitting || hasSubmitted || !canSubmit) return;
 
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "companySettings", isSubmitting: true }));
@@ -84,11 +97,19 @@ const CompanySettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, company, hasSubmitted]
+    [dispatch, formState, company, hasSubmitted, canSubmit]
   );
 
   const isLoadingCompany = loading.fetch;
   const isSubmitting = formState.isSubmitting;
+
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (isLoadingCompany) {
     return (
@@ -133,7 +154,7 @@ const CompanySettings = () => {
         <div className="text-right">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canSubmit}
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : company ? "Update Company" : "Create Company"}

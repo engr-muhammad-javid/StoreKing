@@ -1,4 +1,3 @@
-// src/pages/settings/NotificationSettings.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -19,17 +18,22 @@ import {
 } from "../../../store/slices/formSlice";
 
 import { TextInput } from "../../../components/common";
+import { hasPermission } from "../../../utils/permissions";
 
 const NotificationSettings = () => {
   const dispatch = useDispatch();
   const { notification, loading } = useSelector((state) => state.notification);
   const formState = useSelector((state) => state.form.forms.notificationSettings || {});
+  const { permissions } = useSelector((state) => state.auth);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  const canView = hasPermission(permissions, "settings/notifications", "view");
+  const canUpdate = hasPermission(permissions, "settings/notifications", "update");
+
   useEffect(() => {
-    dispatch(fetchNotification());
+    if (canView) dispatch(fetchNotification());
     return () => dispatch(resetNotificationState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -60,14 +64,15 @@ const NotificationSettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (!canUpdate || formState.isSubmitting || hasSubmitted) return;
+
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "notificationSettings", isSubmitting: true }));
 
       const formData = new FormData();
       Object.entries(formState.formData || {}).forEach(([key, val]) => {
         if (val !== null && typeof val !== "object") formData.append(key, val);
-        if (val instanceof File) formData.append(key, val); // handle file upload
+        if (val instanceof File) formData.append(key, val);
       });
 
       try {
@@ -83,8 +88,16 @@ const NotificationSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, notification, hasSubmitted]
+    [dispatch, formState, notification, hasSubmitted, canUpdate]
   );
+
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (loading.fetch) {
     return (
@@ -99,14 +112,14 @@ const NotificationSettings = () => {
       <h2 className="text-2xl font-semibold mb-6">Notification Settings</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <TextInput label="Firebase Public VAPID Key" name="firebasePublicVapidKey" value={formState.formData?.firebasePublicVapidKey} onChange={handleChange} />
-          <TextInput label="Firebase API Key" name="firebaseApiKey" value={formState.formData?.firebaseApiKey} onChange={handleChange} />
-          <TextInput label="Firebase Auth Domain" name="firebaseAuthDomain" value={formState.formData?.firebaseAuthDomain} onChange={handleChange} />
-          <TextInput label="Firebase Project ID" name="firebaseProjectId" value={formState.formData?.firebaseProjectId} onChange={handleChange} />
-          <TextInput label="Firebase Storage Bucket" name="firebaseStorageBucket" value={formState.formData?.firebaseStorageBucket} onChange={handleChange} />
-          <TextInput label="Firebase Message Sender ID" name="firebaseMessageSenderId" value={formState.formData?.firebaseMessageSenderId} onChange={handleChange} />
-          <TextInput label="Firebase App ID" name="firebaseAppId" value={formState.formData?.firebaseAppId} onChange={handleChange} />
-          <TextInput label="Firebase Measurement ID" name="firebaseMeasurementId" value={formState.formData?.firebaseMeasurementId} onChange={handleChange} />
+          <TextInput label="Firebase Public VAPID Key" name="firebasePublicVapidKey" value={formState.formData?.firebasePublicVapidKey} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase API Key" name="firebaseApiKey" value={formState.formData?.firebaseApiKey} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Auth Domain" name="firebaseAuthDomain" value={formState.formData?.firebaseAuthDomain} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Project ID" name="firebaseProjectId" value={formState.formData?.firebaseProjectId} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Storage Bucket" name="firebaseStorageBucket" value={formState.formData?.firebaseStorageBucket} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Message Sender ID" name="firebaseMessageSenderId" value={formState.formData?.firebaseMessageSenderId} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase App ID" name="firebaseAppId" value={formState.formData?.firebaseAppId} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Measurement ID" name="firebaseMeasurementId" value={formState.formData?.firebaseMeasurementId} onChange={handleChange} disabled={!canUpdate} />
 
           <div className="form-col-12">
             <label htmlFor="firebaseJsonFile" className="block text-sm font-medium mb-1 db-field-title">
@@ -119,23 +132,26 @@ const NotificationSettings = () => {
               onChange={handleChange}
               className="w-full border rounded-md px-3 py-2 db-field-control"
               accept=".json"
+              disabled={!canUpdate}
             />
           </div>
         </div>
 
-        <div className="text-right">
-          <button
-            type="submit"
-            disabled={formState.isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {formState.isSubmitting
-              ? "Saving..."
-              : notification
-              ? "Update Settings"
-              : "Create Settings"}
-          </button>
-        </div>
+        {canUpdate && (
+          <div className="text-right">
+            <button
+              type="submit"
+              disabled={formState.isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {formState.isSubmitting
+                ? "Saving..."
+                : notification
+                ? "Update Settings"
+                : "Create Settings"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

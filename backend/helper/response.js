@@ -12,12 +12,14 @@ export const sendToken = async (res, user, msg) => {
       _id: user?._id,
       name: user?.name,
       email: user?.email,
-      role: user?.role,
+      phone: user?.phone,
+      role: user?.role?._id,
+      roleName: user?.role?.name,
+      permissions: user?.role?.permissions,
       picture: user?.profile
         ? `http://localhost:4000/profile/${user?.profile}`
         : null,
-      phone: user?.phone,
-      addresses: user?.addresses,
+      addresses: user?.addresses || [],
     },
   });
 };

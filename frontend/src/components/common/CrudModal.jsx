@@ -1,23 +1,40 @@
 import React from 'react';
+import { IoClose } from 'react-icons/io5';
 import { useSelector, useDispatch } from 'react-redux';
 import { closeModal } from '../../store/slices/modalSlice';
 import ProductForm from '../admin/forms/ProductForm';
 import CategoryForm from '../admin/forms/CategoryForm';
 import BrandForm from '../admin/forms/BrandForm';
+import AttributeForm from '../admin/forms/AttributeForm';
 import CurrencyForm from '../admin/forms/CurrencyForm';
 import UnitForm from '../admin/forms/UnitForm';
 import TaxForm from '../admin/forms/TaxForm';
 import DeliveryZoneForm from '../admin/forms/DeliveryZoneForm';
-import { IoClose } from 'react-icons/io5';
+import SlidersForm from '../admin/forms/SlidersForm';
+import SupplierForm from '../admin/forms/SupplierForm';
+import OutletForm from '../admin/forms/OutletForm';
+import BenefitForm from '../admin/forms/BenefitForm';
+import PageForm from "../admin/forms/PageForm";
+import LanguageForm from '../admin/forms/LanguageForm';
+import RoleForm from '../admin/forms/RoleForm';
 
 const formComponents = {
   product: ProductForm,
   category: CategoryForm,
   brand:BrandForm,
+  attribute:AttributeForm,
   currency:CurrencyForm,
   unit: UnitForm,
   tax:TaxForm,
+  slider:SlidersForm,
   deliveryZone:DeliveryZoneForm,
+  supplier:SupplierForm,
+  outlet:OutletForm,
+  benefit: BenefitForm,
+  page:PageForm,
+  language:LanguageForm,
+  role:RoleForm,
+
 };
 
 const CrudModal = () => {

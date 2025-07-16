@@ -17,6 +17,7 @@ export const endPoint ={
     currency: 'currencies',
     unit: '/units',
     tax:'/taxes',
+    role:'roles',
     updateProfile: '/update/profile',
     changePassword: '/change/password',
     uploadProfilePic: '/upload/ProfilePic',

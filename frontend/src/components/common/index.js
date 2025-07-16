@@ -10,3 +10,4 @@ export { default as SelectInput } from './SelectInput';
 export { default as SwitchToggle } from './SwitchToggle';
 export { default as Textarea } from './Textarea';
 export { default as TextInput } from './TextInput';
+export { default as ImageUploader }from './ImageUploader'; 

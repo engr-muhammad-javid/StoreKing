@@ -1,4 +1,3 @@
-// src/pages/settings/OtpSettings.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -19,17 +18,24 @@ import {
 } from "../../../store/slices/formSlice";
 
 import { SelectInput } from "../../../components/common";
+import { hasPermission } from "../../../utils/permissions";
 
 const OtpSettings = () => {
   const dispatch = useDispatch();
   const { otp, loading } = useSelector((state) => state.otp);
   const formState = useSelector((state) => state.form.forms.otpSettings || {});
+  const { permissions } = useSelector((state) => state.auth);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  const canView = hasPermission(permissions, "settings/otp", "view");
+  const canUpdate = hasPermission(permissions, "settings/otp", "update");
+
   useEffect(() => {
-    dispatch(fetchOtp());
+    if (canView) {
+      dispatch(fetchOtp());
+    }
     return () => dispatch(resetOtpState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -53,7 +59,8 @@ const OtpSettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (!canUpdate || formState.isSubmitting || hasSubmitted) return;
+
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "otpSettings", isSubmitting: true }));
 
@@ -63,9 +70,7 @@ const OtpSettings = () => {
       });
 
       try {
-        const action = otp
-          ? updateOtp({ data: formData })
-          : createOtp(formData);
+        const action = otp ? updateOtp({ data: formData }) : createOtp(formData);
         await dispatch(action).unwrap();
         toast.success(`OTP settings ${otp ? "updated" : "created"} successfully!`);
       } catch (err) {
@@ -75,8 +80,16 @@ const OtpSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, otp, hasSubmitted]
+    [dispatch, formState, otp, hasSubmitted, canUpdate]
   );
+
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (loading.fetch) {
     return (
@@ -96,6 +109,7 @@ const OtpSettings = () => {
             name="otpType"
             value={formState.formData?.otpType}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "SMS", value: "SMS" },
               { label: "Email", value: "Email" },
@@ -107,6 +121,7 @@ const OtpSettings = () => {
             name="otpDigitLimit"
             value={formState.formData?.otpDigitLimit}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "4", value: "4" },
               { label: "6", value: "6" },
@@ -118,6 +133,7 @@ const OtpSettings = () => {
             name="otpExpireTime"
             value={formState.formData?.otpExpireTime}
             onChange={handleChange}
+            disabled={!canUpdate}
             options={[
               { label: "5 Minutes", value: "5 Minutes" },
               { label: "10 Minutes", value: "10 Minutes" },
@@ -129,19 +145,21 @@ const OtpSettings = () => {
           />
         </div>
 
-        <div className="text-right">
-          <button
-            type="submit"
-            disabled={formState.isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {formState.isSubmitting
-              ? "Saving..."
-              : otp
-              ? "Update Settings"
-              : "Create Settings"}
-          </button>
-        </div>
+        {canUpdate && (
+          <div className="text-right">
+            <button
+              type="submit"
+              disabled={formState.isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {formState.isSubmitting
+                ? "Saving..."
+                : otp
+                ? "Update Settings"
+                : "Create Settings"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

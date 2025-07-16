@@ -1,4 +1,3 @@
-// src/pages/settings/SocialSettings.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -18,17 +17,24 @@ import {
 } from "../../../store/slices/formSlice";
 
 import { TextInput } from "../../../components/common";
+import { hasPermission } from "../../../utils/permissions"; // ✅ Import permission helper
 
 const SocialSettings = () => {
   const dispatch = useDispatch();
   const { social, loading } = useSelector((state) => state.social);
   const formState = useSelector((state) => state.form.forms.socialSettings || {});
+  const { permissions } = useSelector((state) => state.auth);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  const canView = hasPermission(permissions, "settings/social", "view");
+  const canUpdate = hasPermission(permissions, "settings/social", "update");
+
   useEffect(() => {
-    dispatch(fetchSocial());
+    if (canView) {
+      dispatch(fetchSocial());
+    }
     return () => dispatch(resetSocialState());
-  }, [dispatch]);
+  }, [dispatch, canView]);
 
   useEffect(() => {
     dispatch(
@@ -53,7 +59,8 @@ const SocialSettings = () => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (formState.isSubmitting || hasSubmitted) return;
+      if (!canUpdate || formState.isSubmitting || hasSubmitted) return;
+
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "socialSettings", isSubmitting: true }));
 
@@ -73,8 +80,16 @@ const SocialSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, social, hasSubmitted]
+    [dispatch, formState, social, hasSubmitted, canUpdate]
   );
+
+  if (!canView) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (loading.fetch) {
     return (
@@ -89,25 +104,51 @@ const SocialSettings = () => {
       <h2 className="text-2xl font-semibold mb-6">Social Media Links</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <TextInput label="Facebook" name="facebook" value={formState.formData?.facebook} onChange={handleChange} />
-          <TextInput label="YouTube" name="youtube" value={formState.formData?.youtube} onChange={handleChange} />
-          <TextInput label="Instagram" name="instagram" value={formState.formData?.instagram} onChange={handleChange} />
-          <TextInput label="Twitter" name="twitter" value={formState.formData?.twitter} onChange={handleChange} />
+          <TextInput
+            label="Facebook"
+            name="facebook"
+            value={formState.formData?.facebook}
+            onChange={handleChange}
+            disabled={!canUpdate}
+          />
+          <TextInput
+            label="YouTube"
+            name="youtube"
+            value={formState.formData?.youtube}
+            onChange={handleChange}
+            disabled={!canUpdate}
+          />
+          <TextInput
+            label="Instagram"
+            name="instagram"
+            value={formState.formData?.instagram}
+            onChange={handleChange}
+            disabled={!canUpdate}
+          />
+          <TextInput
+            label="Twitter"
+            name="twitter"
+            value={formState.formData?.twitter}
+            onChange={handleChange}
+            disabled={!canUpdate}
+          />
         </div>
 
-        <div className="text-right">
-          <button
-            type="submit"
-            disabled={formState.isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {formState.isSubmitting
-              ? "Saving..."
-              : social
-              ? "Update Settings"
-              : "Create Settings"}
-          </button>
-        </div>
+        {canUpdate && (
+          <div className="text-right">
+            <button
+              type="submit"
+              disabled={formState.isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {formState.isSubmitting
+                ? "Saving..."
+                : social
+                ? "Update Settings"
+                : "Create Settings"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

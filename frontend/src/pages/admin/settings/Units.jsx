@@ -1,4 +1,3 @@
-// src/pages/admin/units/UnitList.js
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -16,10 +15,19 @@ import {
   resetUnitState,
 } from '../../../store/slices/unitSlice';
 import { openModal, closeModal } from '../../../store/slices/modalSlice';
+import { hasPermission } from '../../../utils/permissions';
 
 const Units = () => {
   const dispatch = useDispatch();
   const { units, loading, error } = useSelector((state) => state.unit);
+  const { permissions } = useSelector((state) => state.auth);
+
+  const canView = hasPermission(permissions, 'settings/units', 'view');
+  const canCreate = hasPermission(permissions, 'settings/units', 'create');
+  const canEdit = hasPermission(permissions, 'settings/units', 'update');
+  const canDelete = hasPermission(permissions, 'settings/units', 'delete');
+  const canRenderActions = canEdit || canDelete;
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingUnitId, setDeletingUnitId] = useState(null);
   const [page, setPage] = useState(0);
@@ -81,11 +89,9 @@ const Units = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchUnits());
-    return () => {
-      dispatch(resetUnitState());
-    };
-  }, [dispatch]);
+    if (canView) dispatch(fetchUnits());
+    return () => dispatch(resetUnitState());
+  }, [dispatch, canView]);
 
   useEffect(() => {
     if (error) {
@@ -99,40 +105,46 @@ const Units = () => {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <PageHeader title="Units" onAdd={handleAdd} />
+      <PageHeader title="Units" onAdd={canCreate ? handleAdd : null} />
 
       <Table
         columns={columns}
         data={paginatedUnits}
         loading={loading.fetch || loading.delete}
         emptyMessage="No units found."
-        renderRowActions={(item) => (
-          <ActionButtons onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item._id)} />
-        )}
+        renderRowActions={
+          canRenderActions
+            ? (item) => (
+                <ActionButtons
+                  onEdit={canEdit ? () => handleEdit(item) : null}
+                  onDelete={canDelete ? () => handleDelete(item._id) : null}
+                />
+              )
+            : null
+        }
       />
 
       {totalPages > 1 && (
         <div className="flex justify-end mt-4">
           <ReactPaginate
-            previousLabel={'Previous'}
-            nextLabel={'Next'}
-            breakLabel={'...'}
             pageCount={totalPages}
-            marginPagesDisplayed={2}
-            pageRangeDisplayed={5}
             onPageChange={({ selected }) => setPage(selected)}
-            containerClassName={'flex gap-2 items-center'}
-            pageClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
-            activeClassName={'bg-blue-600 text-white border-blue-600'}
-            previousClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
-            nextClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
-            disabledClassName={'opacity-50 cursor-not-allowed'}
-            breakClassName={'px-3 py-1'}
+            previousLabel="Prev"
+            nextLabel="Next"
+            breakLabel="..."
+            containerClassName="flex gap-2 items-center"
+            pageClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            activeClassName="bg-blue-600 text-white border-blue-600"
+            previousClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            nextClassName="px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+            disabledClassName="opacity-50 cursor-not-allowed"
+            breakClassName="px-3 py-1"
           />
         </div>
       )}
 
       <CrudModal />
+
       <ConfirmationDialog
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}

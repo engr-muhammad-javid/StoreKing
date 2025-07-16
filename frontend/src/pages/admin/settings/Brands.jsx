@@ -2,17 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import PageHeader from '../../../components/admin/PageHeader';
-import { Table, CrudModal, ConfirmationDialog, ActionButtons, ReactPaginate } from '../../../components/common';
-import { 
+import {
+  Table,
+  CrudModal,
+  ConfirmationDialog,
+  ActionButtons,
+  ReactPaginate
+} from '../../../components/common';
+import {
   fetchBrands,
   deleteBrand,
   resetBrandState
 } from '../../../store/slices/brandSlice';
 import { openModal, closeModal } from '../../../store/slices/modalSlice';
+import { hasPermission } from '../../../utils/permissions';
 
 const Brands = () => {
   const dispatch = useDispatch();
   const { brands, loading, error } = useSelector(state => state.brand);
+  const { permissions } = useSelector(state => state.auth);
+
+  const canView = hasPermission(permissions, 'products/brands', 'view');
+  const canCreate = hasPermission(permissions, 'products/brands', 'create');
+  const canEdit = hasPermission(permissions, 'products/brands', 'update');
+  const canDelete = hasPermission(permissions, 'products/brands', 'delete');
+  const canRenderActions = canEdit || canDelete;
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingBrandId, setDeletingBrandId] = useState(null);
   const [page, setPage] = useState(0);
@@ -48,19 +63,16 @@ const Brands = () => {
   ];
 
   const handleAdd = () => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'brand', mode: 'add' }));
   };
 
   const handleEdit = (brand) => {
-    setConfirmOpen(false);
     dispatch(closeModal());
     dispatch(openModal({ entity: 'brand', mode: 'edit', initialData: brand }));
   };
 
   const handleDelete = (id) => {
-    dispatch(closeModal());
     setDeletingBrandId(id);
     setConfirmOpen(true);
   };
@@ -90,12 +102,9 @@ const Brands = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchBrands());
-    setConfirmOpen(false);
-    return () => {
-      dispatch(resetBrandState());
-    };
-  }, [dispatch]);
+    if (canView) dispatch(fetchBrands());
+    return () => dispatch(resetBrandState());
+  }, [dispatch, canView]);
 
   useEffect(() => {
     if (error) {
@@ -107,25 +116,25 @@ const Brands = () => {
   const paginatedBrands = brands.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
   const totalPages = Math.ceil(brands.length / itemsPerPage);
 
-  const handlePageChange = ({ selected }) => {
-    setPage(selected);
-  };
-
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <PageHeader title="Product Brands" onAdd={handleAdd} />
+      <PageHeader title="Product Brands" onAdd={canCreate ? handleAdd : null} />
 
       <Table
         columns={columns}
         data={paginatedBrands}
         loading={loading.fetch || loading.delete}
         emptyMessage="No brands found."
-        renderRowActions={(item) => (
-          <ActionButtons
-            onEdit={() => handleEdit(item)}
-            onDelete={() => handleDelete(item._id)}
-          />
-        )}
+        renderRowActions={
+          canRenderActions
+            ? (item) => (
+                <ActionButtons
+                  onEdit={canEdit ? () => handleEdit(item) : null}
+                  onDelete={canDelete ? () => handleDelete(item._id) : null}
+                />
+              )
+            : null
+        }
       />
 
       {totalPages > 1 && (
@@ -137,7 +146,7 @@ const Brands = () => {
             pageCount={totalPages}
             marginPagesDisplayed={2}
             pageRangeDisplayed={5}
-            onPageChange={handlePageChange}
+            onPageChange={({ selected }) => setPage(selected)}
             containerClassName={'flex gap-2 items-center'}
             pageClassName={'px-3 py-1 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100'}
             activeClassName={'bg-blue-600 text-white border-blue-600'}
