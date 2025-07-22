@@ -26,6 +26,7 @@ export const createNotification = createAsyncThunk(
   "notification/createNotification",
   async (data, { rejectWithValue }) => {
     try {
+      //const customHeader = { "Content-Type": "multipart/form-data" };
       const resp = await postWithToken(data, endPoint.notification);
       if (!resp.status) return rejectWithValue(resp.message || "Failed to create");
       return resp.content;
@@ -40,7 +41,9 @@ export const updateNotification = createAsyncThunk(
   "notification/updateNotification",
   async ({ data }, { rejectWithValue }) => {
     try {
-      const resp = await putWithToken(data, endPoint.notification);
+      
+      const customHeader = { "Content-Type": "multipart/form-data" };
+      const resp = await putWithToken(data, endPoint.notification, customHeader);
       if (!resp.status) return rejectWithValue(resp.message || "Failed to update");
       return resp.content;
     } catch (error) {

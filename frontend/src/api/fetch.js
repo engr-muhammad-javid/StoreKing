@@ -16,9 +16,7 @@ export const postWithoutToken = async (data, endPoint, customHeaders = {}) => {
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
+   
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -41,9 +39,7 @@ export const postWithToken = async (data, endPoint, customHeaders = {}) => {
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
+    
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -64,9 +60,6 @@ export const getWithoutToken = async (endPoint, params = {}, customHeaders = {})
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -90,9 +83,7 @@ export const getWithToken = async (endPoint, params = {}, customHeaders = {}) =>
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
+  
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -112,9 +103,6 @@ export const putWithoutToken = async (data, endPoint, customHeaders = {}) => {
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -157,9 +145,6 @@ export const deleteWithoutToken = async (endPoint, params = {}, customHeaders = 
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -184,9 +169,6 @@ export const deleteWithToken = async (endPoint, params = {}, customHeaders = {})
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
     return resp.data;
   } catch (error) {
     console.error(error.message);
@@ -211,9 +193,6 @@ export const deleteWithTokenandBody = async (data, endPoint) => {
       headers: defaultHeaders,
     });
 
-    if (!resp.data.status) {
-      console.log(resp.data.message);
-    }
     return resp.data;
   } catch (error) {
     console.error(error.message);

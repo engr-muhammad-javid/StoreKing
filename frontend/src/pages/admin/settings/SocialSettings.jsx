@@ -26,8 +26,8 @@ const SocialSettings = () => {
   const { permissions } = useSelector((state) => state.auth);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const canView = hasPermission(permissions, "settings/social", "view");
-  const canUpdate = hasPermission(permissions, "settings/social", "update");
+  const canView = hasPermission(permissions, "settings/social-media", "view");
+  const canUpdate = hasPermission(permissions, "settings/social-media", "update");
 
   useEffect(() => {
     if (canView) {

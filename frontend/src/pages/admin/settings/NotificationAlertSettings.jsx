@@ -37,8 +37,8 @@ const NotificationAlertSettings = () => {
   const { data } = useSelector((state) => state.notificationAlert);
   const { permissions } = useSelector((state) => state.auth);
 
-  const canView = hasPermission(permissions, 'settings/notifications', 'view');
-  const canUpdate = hasPermission(permissions, 'settings/notifications', 'update');
+  const canView = hasPermission(permissions, 'settings/notification-alert', 'view');
+  const canUpdate = hasPermission(permissions, 'settings/notification-alert', 'update');
 
   const [activeTab, setActiveTab] = useState('mail');
 
@@ -55,7 +55,6 @@ const NotificationAlertSettings = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!canUpdate) return;
-    console.log('Saving:', data[activeTab]);
     // TODO: Replace with actual save API call
   };
 
@@ -89,9 +88,9 @@ const NotificationAlertSettings = () => {
       {/* Form */}
       <div className="db-card">
         <div className="db-card-header">
-          <h3 className="db-card-title capitalize">
+          <h2 className="text-2xl font-semibold mb-6 capitalize">
             {activeTab.replace('_', ' ')} Notification Messages
-          </h3>
+          </h2>
         </div>
         <div className="db-card-body">
           <form className="grid grid-cols-1 xl:grid-cols-2 gap-4" onSubmit={handleSubmit}>

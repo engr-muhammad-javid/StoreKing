@@ -1,3 +1,4 @@
+// src/pages/settings/NotificationSettings.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -18,29 +19,27 @@ import {
 } from "../../../store/slices/formSlice";
 
 import { TextInput } from "../../../components/common";
-import { hasPermission } from "../../../utils/permissions";
 
 const NotificationSettings = () => {
   const dispatch = useDispatch();
   const { notification, loading } = useSelector((state) => state.notification);
   const formState = useSelector((state) => state.form.forms.notificationSettings || {});
-  const { permissions } = useSelector((state) => state.auth);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const canView = hasPermission(permissions, "settings/notifications", "view");
-  const canUpdate = hasPermission(permissions, "settings/notifications", "update");
+  // 🔧 Local state for file (keep out of Redux)
+  const [firebaseJsonFile, setFirebaseJsonFile] = useState(null);
 
   useEffect(() => {
-    if (canView) dispatch(fetchNotification());
+    dispatch(fetchNotification());
     return () => dispatch(resetNotificationState());
-  }, [dispatch, canView]);
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(
       initializeForm({
         entity: "notificationSettings",
         initialData: {
-          firebasePublicVapidKey: notification?.firebasePublicVapidKey || "",
+          firebaseVapidKey: notification?.firebaseVapidKey || "",
           firebaseApiKey: notification?.firebaseApiKey || "",
           firebaseAuthDomain: notification?.firebaseAuthDomain || "",
           firebaseProjectId: notification?.firebaseProjectId || "",
@@ -48,7 +47,6 @@ const NotificationSettings = () => {
           firebaseMessageSenderId: notification?.firebaseMessageSenderId || "",
           firebaseAppId: notification?.firebaseAppId || "",
           firebaseMeasurementId: notification?.firebaseMeasurementId || "",
-          firebaseJsonFile: null,
         },
         mode: notification ? "edit" : "add",
       })
@@ -57,23 +55,32 @@ const NotificationSettings = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    const fieldValue = files ? files[0] : value;
-    dispatch(updateFormField({ entity: "notificationSettings", name, value: fieldValue }));
+
+    if (name === "firebaseJsonFile") {
+      // 🔧 Handle File only in local state
+      if (files && files.length > 0) setFirebaseJsonFile(files[0]);
+    } else {
+      dispatch(updateFormField({ entity: "notificationSettings", name, value }));
+    }
   };
 
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (!canUpdate || formState.isSubmitting || hasSubmitted) return;
+      if (formState.isSubmitting || hasSubmitted) return;
 
       setHasSubmitted(true);
       dispatch(setSubmitting({ entity: "notificationSettings", isSubmitting: true }));
 
       const formData = new FormData();
+
       Object.entries(formState.formData || {}).forEach(([key, val]) => {
         if (val !== null && typeof val !== "object") formData.append(key, val);
-        if (val instanceof File) formData.append(key, val);
       });
+
+      if (firebaseJsonFile) {
+        formData.append("firebaseJsonFile", firebaseJsonFile); // 🔧 File added from local state
+      }
 
       try {
         const action = notification
@@ -88,16 +95,8 @@ const NotificationSettings = () => {
         setHasSubmitted(false);
       }
     },
-    [dispatch, formState, notification, hasSubmitted, canUpdate]
+    [dispatch, formState, notification, firebaseJsonFile, hasSubmitted]
   );
-
-  if (!canView) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 text-center text-red-600 font-semibold">
-        You do not have permission to view this page.
-      </div>
-    );
-  }
 
   if (loading.fetch) {
     return (
@@ -112,14 +111,14 @@ const NotificationSettings = () => {
       <h2 className="text-2xl font-semibold mb-6">Notification Settings</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <TextInput label="Firebase Public VAPID Key" name="firebasePublicVapidKey" value={formState.formData?.firebasePublicVapidKey} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase API Key" name="firebaseApiKey" value={formState.formData?.firebaseApiKey} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase Auth Domain" name="firebaseAuthDomain" value={formState.formData?.firebaseAuthDomain} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase Project ID" name="firebaseProjectId" value={formState.formData?.firebaseProjectId} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase Storage Bucket" name="firebaseStorageBucket" value={formState.formData?.firebaseStorageBucket} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase Message Sender ID" name="firebaseMessageSenderId" value={formState.formData?.firebaseMessageSenderId} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase App ID" name="firebaseAppId" value={formState.formData?.firebaseAppId} onChange={handleChange} disabled={!canUpdate} />
-          <TextInput label="Firebase Measurement ID" name="firebaseMeasurementId" value={formState.formData?.firebaseMeasurementId} onChange={handleChange} disabled={!canUpdate} />
+          <TextInput label="Firebase Public VAPID Key" name="firebaseVapidKey" value={formState.formData?.firebaseVapidKey} onChange={handleChange} />
+          <TextInput label="Firebase API Key" name="firebaseApiKey" value={formState.formData?.firebaseApiKey} onChange={handleChange} />
+          <TextInput label="Firebase Auth Domain" name="firebaseAuthDomain" value={formState.formData?.firebaseAuthDomain} onChange={handleChange} />
+          <TextInput label="Firebase Project ID" name="firebaseProjectId" value={formState.formData?.firebaseProjectId} onChange={handleChange} />
+          <TextInput label="Firebase Storage Bucket" name="firebaseStorageBucket" value={formState.formData?.firebaseStorageBucket} onChange={handleChange} />
+          <TextInput label="Firebase Message Sender ID" name="firebaseMessageSenderId" value={formState.formData?.firebaseMessageSenderId} onChange={handleChange} />
+          <TextInput label="Firebase App ID" name="firebaseAppId" value={formState.formData?.firebaseAppId} onChange={handleChange} />
+          <TextInput label="Firebase Measurement ID" name="firebaseMeasurementId" value={formState.formData?.firebaseMeasurementId} onChange={handleChange} />
 
           <div className="form-col-12">
             <label htmlFor="firebaseJsonFile" className="block text-sm font-medium mb-1 db-field-title">
@@ -132,26 +131,23 @@ const NotificationSettings = () => {
               onChange={handleChange}
               className="w-full border rounded-md px-3 py-2 db-field-control"
               accept=".json"
-              disabled={!canUpdate}
             />
           </div>
         </div>
 
-        {canUpdate && (
-          <div className="text-right">
-            <button
-              type="submit"
-              disabled={formState.isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {formState.isSubmitting
-                ? "Saving..."
-                : notification
-                ? "Update Settings"
-                : "Create Settings"}
-            </button>
-          </div>
-        )}
+        <div className="text-right">
+          <button
+            type="submit"
+            disabled={formState.isSubmitting}
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {formState.isSubmitting
+              ? "Saving..."
+              : notification
+              ? "Update Settings"
+              : "Create Settings"}
+          </button>
+        </div>
       </form>
     </div>
   );

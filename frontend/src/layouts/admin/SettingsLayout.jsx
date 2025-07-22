@@ -17,7 +17,7 @@ const SettingsLayout = () => {
     { name: 'Mail', path: 'mail' },
     { name: 'OTP', path: 'otp' },
     { name: 'Notification', path: 'notification' },
-    { name: 'Notification Alert', path: 'notification-alerts' },
+    { name: 'Notification Alert', path: 'notification-alert' },
     { name: 'Social Media', path: 'social-media' },
     { name: 'Cookies', path: 'cookies' },
     { name: 'Theme', path: 'theme-settings' },

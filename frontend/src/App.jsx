@@ -107,7 +107,7 @@ function App() {
             <Route path="mail" element={<MailSettings />} />
             <Route path="otp" element={<OtpSettings />} />
             <Route path="notification" element={<NotificationSettings />} />
-            <Route path="notification-alerts" element={<NotificationAlertSettings />} />
+            <Route path="notification-alert" element={<NotificationAlertSettings />} />
             <Route path="social-media" element={<SocialSettings />} />
             <Route path="cookies" element={<CookieSettings />} />
             <Route path="theme-settings" element={<ThemeSettings />} />

@@ -12,6 +12,9 @@ import currencyRouter from "./routes/currency.routes.js";
 import companySettingRouter from "./routes/companySetting.routes.js";
 import siteSettingRoutes from "./routes/siteSetting.routes.js";
 import deliveryZoneRoutes from "./routes/deliveryZone.routes.js";
+import mailSettingRouter from "./routes/mailSetting.routes.js";
+import otpSettingRouter from "./routes/otpSetting.routes.js";
+import notificationSettingRouter from "./routes/notificationSetting.routes.js";
 import supplierRouter from "./routes/supplier.routes.js";
 import outletRouter from "./routes/outlet.routes.js";
 import benefitRouter from "./routes/benefit.routes.js";
@@ -19,6 +22,7 @@ import unitRouter from "./routes/unit.routes.js";
 import taxRouter from "./routes/tax.routes.js";
 import pageRouter from "./routes/page.routes.js";
 import languageRoutes from "./routes/language.routes.js";
+
 
 export const app = express();
 
@@ -42,7 +46,10 @@ app.use("/api/v1/currencies", currencyRouter);
 app.use("/api/v1/roles", roleRouter);
 app.use("/api/v1/company-setting", companySettingRouter);
 app.use("/api/v1/site-setting", siteSettingRoutes);
+app.use("/api/v1/mail-setting", mailSettingRouter);
 app.use("/api/v1/delivery-zones", deliveryZoneRoutes);
+app.use("/api/v1/otp-setting", otpSettingRouter);
+app.use("/api/v1/notification-setting", notificationSettingRouter);
 app.use("/api/v1/suppliers", supplierRouter);
 app.use("/api/v1/outlets", outletRouter);
 app.use("/api/v1/benefits", benefitRouter);
@@ -50,3 +57,4 @@ app.use("/api/v1/units", unitRouter);
 app.use("/api/v1/taxes", taxRouter);
 app.use("/api/v1/pages", pageRouter);
 app.use("/api/v1/languages", languageRoutes);
+

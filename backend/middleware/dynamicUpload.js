@@ -4,7 +4,7 @@ import randomstring from 'randomstring';
 import fs from 'fs';
 
 // File type filter
-const allowedImageTypes = /jpeg|jpg|png|gif/;
+const allowedImageTypes = /jpeg|jpg|png|json|gif/;
 
 const checkFileType = (file, cb) => {
     const extname = allowedImageTypes.test(path.extname(file.originalname).toLowerCase());
